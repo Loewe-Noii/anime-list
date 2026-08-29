@@ -56,7 +56,12 @@
   }
 
   /* ---- 版面骨架 ---- */
-  .app{display:grid;grid-template-columns:220px 1fr;min-height:100vh;}
+  /* align-content:start 只在手機版(單欄,sidebar header跟main疊成兩列)才有作用:
+     min-height:100vh 讓短頁面(例如「我的最愛」只有兩三筆)也撐滿整個螢幕高度,
+     但沒有這行的話,預設align-content會把多出來的高度塞進兩個row track之間,
+     導致sidebar裡「站名列」跟「導覽列」兩排被硬生生撐開一大段空白、整個header
+     往下掉。桌面版sidebar/main是同一row的兩個欄位(只有1個row track),不受影響。 */
+  .app{display:grid;grid-template-columns:220px 1fr;min-height:100vh;align-content:start;}
   @media (max-width:768px){ .app{grid-template-columns:1fr;} }
   .sidebar{border-right:1px solid var(--border);padding:22px 14px;display:flex;flex-direction:column;gap:22px;}
   @media (max-width:768px){
@@ -141,10 +146,18 @@
   /* ---- 首頁分頁籤(人氣熱門/追蹤/喜愛) ---- */
   .home-seg{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:18px;}
   .home-seg button{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--surface);border:none;
-    border-right:1px solid var(--border);color:var(--fg-dim);cursor:pointer;font-size:.82rem;font-weight:600;}
+    border-right:1px solid var(--border);color:var(--fg-dim);cursor:pointer;font-size:.82rem;font-weight:600;white-space:nowrap;}
   .home-seg button:last-child{border-right:none;}
   .home-seg button.active{background:var(--accent);color:var(--accent-fg);}
   .home-seg .seg-count{font-size:.66rem;padding:1px 6px;border-radius:999px;border:1px solid currentColor;opacity:.8;}
+  /* 手機版三顆分頁鈕(人氣熱門/追蹤中/我的最愛)原本用桌面版的padding+字級,
+     三顆擠在窄螢幕裡容器會把每顆壓縮到比文字自然寬度還窄,文字被迫換成兩行,
+     看起來很擠。改成每顆平均分寬(flex:1)+縮小padding/字級/間距,三顆一行排開。 */
+  @media (max-width:768px){
+    .home-seg{display:flex;width:100%;}
+    .home-seg button{flex:1;justify-content:center;padding:8px 6px;gap:3px;font-size:.72rem;}
+    .home-seg .seg-count{font-size:.6rem;padding:0 5px;}
+  }
 
   /* ---- 人氣熱門的次分頁(當季/近期/年度) ---- */
   .popular-subtabs{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
