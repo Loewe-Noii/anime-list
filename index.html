@@ -24500,7 +24500,15 @@ async function ensureSeasonLoadedFor(id){
   }
   return true;
 }
+/* 快速連續切換(例如手機連續滑動返回好幾次、或網路較慢時連點相關動畫)會讓好幾個
+   openDetail/popstate的非同步呼叫同時卡在ensureSeasonLoadedFor的await上——
+   誰的fetch先回來就先套用畫面,如果「比較舊的那次」反而比較晚回來,就會在使用者
+   已經看到新畫面之後,突然又被舊的結果蓋回去,呈現「返回時畫面亂跳」的現象。
+   修法:每次導覽動作都領一個遞增的序號(navSeq),await結束後先確認序號還是最新的
+   才套用畫面,較舊的呼叫發現自己已經被插隊就直接放棄,不動畫面。 */
+let navSeq = 0;
 async function openDetail(id){
+  const mySeq = ++navSeq;
   // depth = 從列表頁開始算,這次要push的是第幾層詳情頁(點相關動畫連續深入時會累加)。
   // 存進pushState的state裡,讓backToGrid()知道總共要跳幾層history才能真正回到列表頁。
   let depth = 1;
@@ -24512,6 +24520,7 @@ async function openDetail(id){
     depth = history.state.depth + 1;
   }
   if(!(await ensureSeasonLoadedFor(id))) return;
+  if(mySeq !== navSeq) return; // 等待期間被更新的導覽動作插隊了,這次結果作廢
   activeDetailId = id; activeTab='browse'; render(); window.scrollTo({top:0});
   // 把這次開詳情頁記錄進瀏覽器歷史紀錄,這樣瀏覽器自己的「上一頁」按鈕/手機滑動返回手勢
   // 才會有反應——不然這個網站完全沒有跟瀏覽器的上一頁機制串接,只有畫面上的「返回列表」按鈕有用。
@@ -24527,6 +24536,8 @@ function backToGrid(){
      讓瀏覽器的history也一次跳回最初的列表頁,兩邊才會同步。這裡的popstate監聽
      之後還會再收到一次(state=null),屆時depth已經是0不會重複跳轉,只是重跑一次
      setTab/scrollTo,無害。 */
+  navSeq++; // 讓任何還卡在ensureSeasonLoadedFor await中、比較舊的openDetail/popstate呼叫作廢,
+            // 不然稍後才resolve的話會把畫面又蓋回某個detail頁,蓋掉這裡剛切回的列表頁。
   const depth = (history.state && history.state.depth) || 0;
   setTab(returnToTab); // 回到進來前的那個分頁(首頁或季度瀏覽),而不是永遠固定跳去季度瀏覽
   window.scrollTo({top: browseScrollY});
@@ -24539,9 +24550,11 @@ function backToGrid(){
    連續點了跨季度的兩部作品),沒有重新切季度/確保資料已載入的話,findMedia() 會找不到
    資料顯示「找不到這筆資料」——所以這裡要跟 openDetail 一樣呼叫 ensureSeasonLoadedFor。 */
 window.addEventListener('popstate', async (e) => {
+  const mySeq = ++navSeq;
   const state = e.state;
   if(state && state.activeDetailId != null){
     if(!(await ensureSeasonLoadedFor(state.activeDetailId))) return;
+    if(mySeq !== navSeq) return; // 等待期間被更新的導覽動作插隊了,這次結果作廢
     activeDetailId = state.activeDetailId;
     activeTab = 'browse';
     returnToTab = state.returnToTab;
@@ -24567,6 +24580,15 @@ function findMediaAnywhere(id){
   return null;
 }
 function detailHtml(){
+  /* 踩過的坑:點「相關動畫」切到不同季度的作品時,ensureSeasonLoadedFor會在fetch開始前
+     就先把curYear/curSeasonKey同步切成目標季度、才觸發這次loading中繼render——但這時
+     activeDetailId還是「切換前」那筆的id(要等fetch完成後openDetail才會更新)。這個時間差
+     會讓findMedia(activeDetailId)拿新季度的curYear/curSeasonKey去找舊id,當然找不到,
+     畫面因此閃過一下「找不到這筆資料」再恢復正常。修法:loadState==='loading'時代表
+     正在切換季度中,先顯示「載入中」,不要急著判定成真的找不到。 */
+  if(loadState === 'loading'){
+    return `<button class="back-link" onclick="backToGrid()">‹ 返回列表</button><div class="state-box">載入中…</div>`;
+  }
   const m = findMedia(activeDetailId);
   if(!m) return `<button class="back-link" onclick="backToGrid()">‹ 返回列表</button><div class="empty">找不到這筆資料(可能切換季度了)。</div>`;
   const t = displayTitle(m);
