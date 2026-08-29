@@ -294,6 +294,11 @@
   .form-grid label{display:flex;flex-direction:column;gap:4px;font-size:.76rem;color:var(--fg-dim);}
   .form-grid input,.form-grid select{padding:7px 9px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);}
   .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
+  #log-add-input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);margin-bottom:10px;}
+  .log-add-results{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+  .log-add-row{display:flex;align-items:center;gap:10px;padding:6px;border:1px solid var(--border);border-radius:6px;}
+  .log-add-row img{width:32px;height:48px;object-fit:cover;border-radius:3px;flex:none;background:var(--surface-alt);}
+  .log-add-row .log-add-title{flex:1;font-size:.82rem;font-weight:600;}
 
   /* ---- 同步失敗提示(右下角小提示,不擋畫面) ---- */
   .toast{position:fixed;right:16px;bottom:16px;max-width:320px;padding:10px 14px;border-radius:8px;
@@ -428,6 +433,15 @@ function favRowFromDb(r){
   return { id: r.id, title: r.title, coverImage: r.cover_image, isAdult: !!r.is_adult, addedAt: r.added_at };
 }
 function favRowToDb(row){
+  return { id: row.id, title: row.title, cover_image: row.coverImage, is_adult: !!row.isAdult };
+}
+/* 「追蹤中」(卡片上＋追蹤按鈕)跟「追番紀錄」(看完自己手動記)本來共用同一份myLog,
+   使用者反映這樣兩邊資料會混在一起、不是他要的——2026-08-29拆開成獨立的一張表
+   my_tracking,schema跟my_favorites一樣簡單(不需要狀態/次數/日期/備註這些細節欄位)。 */
+function trackRowFromDb(r){
+  return { id: r.id, title: r.title, coverImage: r.cover_image, isAdult: !!r.is_adult, addedAt: r.added_at };
+}
+function trackRowToDb(row){
   return { id: row.id, title: row.title, cover_image: row.coverImage, is_adult: !!row.isAdult };
 }
 
@@ -23676,10 +23690,11 @@ function initAuth(){
     authState = currentUser ? 'signedIn' : 'signedOut';
     if(currentUser){
       initLog();
+      initTracking();
       initFavorites();
     } else {
-      myLog = []; myFavorites = [];
-      logSyncState = 'idle'; favSyncState = 'idle';
+      myLog = []; myTracking = []; myFavorites = [];
+      logSyncState = 'idle'; trackSyncState = 'idle'; favSyncState = 'idle';
     }
     renderAuthStatus();
     render();
@@ -23825,6 +23840,28 @@ async function initFavorites(){
 }
 function backupFavLocally(){
   try{ localStorage.setItem(FAV_LS_KEY, JSON.stringify(myFavorites)); }catch(e){}
+}
+
+// ---------- 追蹤中清單(獨立於追番紀錄,單純的「想追蹤」標記,跟喜愛清單同一種輕量結構) ----------
+let myTracking = [];
+let trackSyncState = 'idle';
+let trackSyncError = '';
+const TRACK_LS_KEY = 'fanyouzhi_tracking_v1';
+
+async function initTracking(){
+  trackSyncState = 'loading';
+  const { data, error } = await sb.from('my_tracking').select('*').order('added_at', { ascending:false });
+  if(error){
+    trackSyncState = 'error'; trackSyncError = error.message || String(error);
+    try{ myTracking = JSON.parse(localStorage.getItem(TRACK_LS_KEY) || '[]'); }catch(e){ myTracking = []; }
+  } else {
+    trackSyncState = 'idle';
+    myTracking = data.map(trackRowFromDb);
+  }
+  render();
+}
+function backupTrackingLocally(){
+  try{ localStorage.setItem(TRACK_LS_KEY, JSON.stringify(myTracking)); }catch(e){}
 }
 
 function escapeHtml(s){
@@ -23975,8 +24012,16 @@ function render(){
 }
 /* 搜尋框每打一個字都整頁重繪的話,舊的 <input> 節點會被換成新的、焦點跟著不見,
    變成「打一個字就要重新點回去才能打下一個字」。這裡在重繪前記住搜尋框是否
-   有焦點與游標位置,重繪後還原,搜尋輸入才能連續打字。 */
+   有焦點與游標位置,重繪後還原,搜尋輸入才能連續打字。
+   踩過的坑(2026-08-29):中文輸入法(注音/拼音)組字過程中,瀏覽器會在還沒選字
+   確定前就持續觸發'input'事件,如果這裡照樣重繪、把輸入框整個換成新節點,正在
+   輸入法選字視窗會失去錨定的DOM節點,導致組字狀態整個中斷——打字稍微慢一點,
+   讓300ms防抖跟輸入法選字的空檔重疊到,就會出現「打字打到一半突然打不下去」。
+   修法:組字期間(searchComposing)完全跳過重繪,等選字確定(compositionend)才真的
+   觸發搜尋跟重繪,不會半路打斷輸入法。 */
+let searchComposing = false;
 function renderPreserveFocus(){
+  if(searchComposing) return; // 輸入法組字中,先不重繪,避免打斷選字視窗
   const activeEl = document.activeElement;
   const isSearchFocused = activeEl && activeEl.id === 'search-input';
   const selStart = isSearchFocused ? activeEl.selectionStart : null;
@@ -24100,7 +24145,7 @@ function homeHtml(){
         🔥 人氣熱門
       </button>
       <button class="${homeSection==='track'?'active':''}" onclick="setHomeSection('track')">
-        📌 追蹤中 <span class="seg-count">${myLog.length}</span>
+        📌 追蹤中 <span class="seg-count">${myTracking.length}</span>
       </button>
       <button class="${homeSection==='favorite'?'active':''}" onclick="setHomeSection('favorite')">
         ♥ 我的喜愛 <span class="seg-count">${myFavorites.length}</span>
@@ -24142,7 +24187,7 @@ function homeSectionBodyHtml(){
     if(!currentUser){
       return `<div class="empty">登入後即可追蹤作品、跨裝置同步。<br><button class="btn btn-sm" style="margin-top:10px" onclick="openLoginModal()">登入</button></div>`;
     }
-    const list = applyAdultFilter(myLog);
+    const list = applyAdultFilter(myTracking);
     return list.length ? `<div class="grid">${list.map(simpleCardHtml).join('')}</div>`
       : `<div class="empty">還沒有追蹤任何作品,在卡片右下角按「＋ 追蹤」試試。</div>`;
   }
@@ -24273,7 +24318,18 @@ async function runGlobalSearch(){
 }
 function wireBrowseControls(){
   const el = document.getElementById('search-input');
-  if(el) el.addEventListener('input', e=>{ query = e.target.value; triggerSearch(); });
+  if(!el) return;
+  el.addEventListener('compositionstart', ()=>{ searchComposing = true; });
+  el.addEventListener('compositionend', e=>{
+    searchComposing = false;
+    query = e.target.value;
+    triggerSearch(); // 選字確定的當下才真的觸發搜尋跟重繪
+  });
+  el.addEventListener('input', e=>{
+    query = e.target.value;
+    if(e.isComposing || searchComposing) return; // 組字中的中間狀態不觸發搜尋,交給compositionend處理
+    triggerSearch();
+  });
 }
 function cardHtml(m){
   const t = displayTitle(m);
@@ -24579,16 +24635,31 @@ function resolveBasics(id){
   if(m) return { id, title: displayTitle(m), coverImage: m.coverImage.extraLarge || m.coverImage.large, isAdult: !!m.isAdult };
   const logRow = myLog.find(r=>r.id===id);
   if(logRow) return { id, title: logRow.title, coverImage: logRow.coverImage, isAdult: !!logRow.isAdult };
+  const trackRow = myTracking.find(r=>r.id===id);
+  if(trackRow) return { id, title: trackRow.title, coverImage: trackRow.coverImage, isAdult: !!trackRow.isAdult };
   const favRow = myFavorites.find(r=>r.id===id);
   if(favRow) return { id, title: favRow.title, coverImage: favRow.coverImage, isAdult: !!favRow.isAdult };
   return null;
 }
-function isTracked(id){ return myLog.some(r=>r.id===id); }
+function isTracked(id){ return myTracking.some(r=>r.id===id); }
 function isFavorite(id){ return myFavorites.some(r=>r.id===id); }
+/* 追蹤中(卡片＋追蹤按鈕)是獨立的輕量清單,跟「追番紀錄」(myLog,看完自己手動記
+   狀態/次數/日期/備註)完全分開——加入追蹤不會出現在追番紀錄,追番紀錄也不會
+   反過來出現在追蹤中,兩份資料互不影響。 */
 function toggleTrack(id){
   if(!currentUser){ openLoginModal(); return; }
-  if(isTracked(id)) removeFromLog(id);
-  else addToLog(id);
+  if(isTracked(id)){
+    myTracking = myTracking.filter(r=>r.id!==id);
+    backupTrackingLocally(); render();
+    sb.from('my_tracking').delete().eq('id', id).then(({error})=>{ if(error) reportSyncError('追蹤移除', error); });
+    return;
+  }
+  const basics = resolveBasics(id);
+  if(!basics) return;
+  const row = { ...basics, addedAt: new Date().toISOString() };
+  myTracking.unshift(row);
+  backupTrackingLocally(); render();
+  sb.from('my_tracking').insert(trackRowToDb(row)).then(({error})=>{ if(error) reportSyncError('追蹤新增', error); });
 }
 function toggleFavorite(id){
   if(!currentUser){ openLoginModal(); return; }
@@ -24676,10 +24747,99 @@ function submitDate(id){
   closeModal(); render();
 }
 
-/* 「追蹤中」「我的最愛」獨立分頁——跟首頁的追蹤中/我的喜愛用同一份資料(myLog/myFavorites)、
+/* 「追番紀錄」手動新增——使用者反映追番紀錄應該是「看完後自己記」的資料,不該跟卡片上
+   「＋追蹤」按鈕(myTracking)綁在一起,所以在追番紀錄頁另外做一個搜尋加入的入口。
+   結果清單用獨立的 #log-add-results 這個子節點更新(只換results區塊的innerHTML,
+   輸入框本身<input id="log-add-input">完全不重繪、不重建節點),這樣天生就不會有
+   中文輸入法組字被打斷的問題(節點沒被換掉,IME選字視窗自然不會斷)——比另外套用
+   compositionstart/compositionend那套更簡單直接,新元件優先用這個模式。 */
+let logAddQuery = '';
+let logAddResults = null;
+let logAddState = 'idle'; // idle|loading
+let logAddDebounceTimer = null;
+let logAddComposing = false;
+function openLogAddForm(){
+  logAddQuery = ''; logAddResults = null; logAddState = 'idle';
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-backdrop" onclick="if(event.target===this) closeLogAddForm()">
+      <div class="modal">
+        <h3>新增追番紀錄</h3>
+        <p style="font-size:.78rem;color:var(--fg-dim);margin-bottom:10px;">搜尋作品名稱,選一部加入「追番紀錄」(不會影響追蹤中清單)。</p>
+        <input id="log-add-input" type="text" placeholder="輸入作品名稱…">
+        <div id="log-add-results" class="log-add-results"></div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeLogAddForm()">關閉</button>
+        </div>
+      </div>
+    </div>`;
+  const el = document.getElementById('log-add-input');
+  el.focus();
+  el.addEventListener('compositionstart', ()=>{ logAddComposing = true; });
+  el.addEventListener('compositionend', e=>{ logAddComposing = false; logAddQuery = e.target.value; triggerLogAddSearch(); });
+  el.addEventListener('input', e=>{
+    logAddQuery = e.target.value;
+    if(e.isComposing || logAddComposing) return;
+    triggerLogAddSearch();
+  });
+}
+function closeLogAddForm(){
+  clearTimeout(logAddDebounceTimer);
+  document.getElementById('modal-root').innerHTML='';
+}
+function triggerLogAddSearch(){
+  clearTimeout(logAddDebounceTimer);
+  if(!logAddQuery.trim()){ logAddResults=null; logAddState='idle'; renderLogAddResults(); return; }
+  logAddDebounceTimer = setTimeout(runLogAddSearch, 300);
+}
+async function runLogAddSearch(){
+  const q = logAddQuery.trim().toLowerCase();
+  if(!q) return;
+  logAddState = 'loading';
+  renderLogAddResults();
+  const matches = Object.entries(CN_OVERLAY).filter(([id, ov]) => (ov.title||'').toLowerCase().includes(q));
+  const seasonKeys = [...new Set(matches.map(([id,ov]) => `${ov.year}-${ov.season}`))];
+  await mapWithConcurrency(seasonKeys, 3, key => {
+    const [y,s] = key.split('-');
+    return fetchSeason(Number(y), s).catch(()=>null);
+  });
+  if(logAddQuery.trim().toLowerCase() !== q) return; // 搜尋字串已經變了,交給後面那次搜尋處理
+  const results = matches
+    .map(([id, ov]) => (seasonCache[`${ov.year}-${ov.season}`]||[]).find(x => String(x.id) === id))
+    .filter(Boolean)
+    .filter(m => !myLog.some(r=>r.id===m.id)); // 已經在追番紀錄裡的不用再顯示
+  logAddResults = results.slice(0, 20); // 結果太多只顯示前20筆,modal不會拉太長
+  logAddState = 'idle';
+  renderLogAddResults();
+}
+function renderLogAddResults(){
+  const el = document.getElementById('log-add-results');
+  if(!el) return; // modal可能已經被關掉,忽略這次遲到的渲染
+  if(logAddState === 'loading'){
+    el.innerHTML = `<div class="state-box" style="padding:16px 0;">搜尋中…</div>`;
+  } else if(logAddResults == null){
+    el.innerHTML = '';
+  } else if(logAddResults.length === 0){
+    el.innerHTML = `<div class="empty" style="padding:14px;">沒有符合的作品,或已經在追番紀錄裡了。</div>`;
+  } else {
+    el.innerHTML = logAddResults.map(m => `
+      <div class="log-add-row">
+        <img src="${escapeHtml(m.coverImage.medium || m.coverImage.large)}" alt="">
+        <span class="log-add-title">${escapeHtml(displayTitle(m))}</span>
+        <button class="btn btn-sm" onclick="pickLogAdd(${m.id})">加入</button>
+      </div>
+    `).join('');
+  }
+}
+function pickLogAdd(id){
+  addToLog(id);
+  closeLogAddForm();
+}
+
+/* 「追蹤中」「我的最愛」獨立分頁——跟首頁的追蹤中/我的喜愛用同一份資料(myTracking/myFavorites)、
    同一種卡片格線呈現方式(simpleCardHtml),只是首頁那份是塞在home-seg分頁裡的縮小版,
    這裡是完整獨立頁面(有自己的page-head/共幾部),方便瀏覽跟點進詳情頁。
-   狀態/次數/觀看日期/備註等細節編輯留在「追番紀錄」那個表格頁,這裡純粹是視覺瀏覽用。 */
+   myTracking跟myLog(追番紀錄)完全獨立,狀態/次數/觀看日期/備註等細節編輯留在
+   「追番紀錄」那個表格頁,這裡純粹是視覺瀏覽用。 */
 function simpleListHtml(kind){
   const title = kind==='track' ? '追蹤中' : '我的最愛';
   if(authState === 'loading'){
@@ -24690,10 +24850,10 @@ function simpleListHtml(kind){
       <div class="empty">登入後才能查看與同步「${title}」,資料依帳號分開保存,並可跨裝置同步。
         <br><button class="btn btn-sm" style="margin-top:10px" onclick="openLoginModal()">登入</button></div>`;
   }
-  const source = kind==='track' ? myLog : myFavorites;
+  const source = kind==='track' ? myTracking : myFavorites;
   const list = applyAdultFilter(source);
   const emptyHint = kind==='track'
-    ? '還沒有追蹤任何作品,在卡片右下角按「＋ 追蹤」試試,或去「追番紀錄」加一筆。'
+    ? '還沒有追蹤任何作品,在卡片右下角按「＋ 追蹤」試試。'
     : '還沒有加入任何喜愛的作品,在卡片左下角按 ♡ 試試。';
   return `
     <div class="page-head"><h2>${title}<span class="count">共 ${list.length} 部</span></h2></div>
@@ -24719,11 +24879,12 @@ function logHtml(){
   const syncNote = logSyncState==='error'
     ? `<span class="badge-sample" title="${escapeHtml(logSyncError)}">⚠ 雲端連線失敗,目前顯示本機備份,未同步</span>`
     : `<span class="badge-sample">已同步雲端</span>`;
+  const addBtn = `<button class="btn btn-sm" onclick="openLogAddForm()">＋ 新增</button>`;
   if(rows.length===0){
-    return `<div class="page-head"><h2>${title} ${syncNote}</h2></div><div class="empty">目前還沒有紀錄,去「季度瀏覽」點開一部作品、按「加入我的紀錄」試試。</div>`;
+    return `<div class="page-head"><h2>${title} ${syncNote}</h2>${addBtn}</div><div class="empty">目前還沒有紀錄,看完一部作品後按上面「＋ 新增」搜尋加入,或去該作品詳情頁下方「＋ 加入追番紀錄」。</div>`;
   }
   return `
-    <div class="page-head"><h2>${title} ${syncNote}<span class="count">共 ${rows.length} 部</span></h2></div>
+    <div class="page-head"><h2>${title} ${syncNote}<span class="count">共 ${rows.length} 部</span></h2>${addBtn}</div>
     <div class="table-wrap"><table>
       <thead><tr><th>封面</th><th>作品</th><th>狀態</th><th>次數</th><th>觀看日期</th><th>備註</th><th></th></tr></thead>
       <tbody>
