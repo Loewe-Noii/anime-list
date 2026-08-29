@@ -155,7 +155,7 @@
     color:var(--fg);font-size:.78rem;font-weight:600;cursor:pointer;}
 
   /* ---- 卡片/詳情頁共用的追蹤・喜愛按鈕 ---- */
-  .card-actions{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 10px 10px;}
+  .card-actions{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 10px 10px;margin-top:auto;}
   .card-act-btn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--border);background:var(--bg);
     color:var(--fg-dim);padding:4px 9px;border-radius:999px;font-size:.7rem;font-weight:600;cursor:pointer;}
   .card-act-btn:hover{border-color:var(--accent);color:var(--fg);}
@@ -251,7 +251,7 @@
   /* ---- 表格(追番紀錄) ---- */
   .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;}
   table{width:100%;border-collapse:collapse;min-width:820px;}
-  th,td{padding:9px 12px;text-align:left;font-size:.8rem;border-bottom:1px solid var(--border);vertical-align:top;}
+  th,td{padding:9px 12px;text-align:left;font-size:.8rem;border-bottom:1px solid var(--border);vertical-align:middle;}
   th{background:var(--surface-alt);color:var(--fg-dim);font-weight:600;font-size:.7rem;letter-spacing:.03em;white-space:nowrap;}
   tr:last-child td{border-bottom:none;}
   td.title-cell{min-width:160px;font-weight:600;white-space:normal;}
@@ -24148,7 +24148,7 @@ function homeHtml(){
         📌 追蹤中 <span class="seg-count">${myTracking.length}</span>
       </button>
       <button class="${homeSection==='favorite'?'active':''}" onclick="setHomeSection('favorite')">
-        ♥ 我的喜愛 <span class="seg-count">${myFavorites.length}</span>
+        ♥ 我的最愛 <span class="seg-count">${myFavorites.length}</span>
       </button>
     </div>
     ${homeSectionBodyHtml()}
@@ -24890,7 +24890,7 @@ function logHtml(){
       <tbody>
         ${rows.map(r=>`
           <tr>
-            <td><img src="${escapeHtml(r.coverImage)}" alt="" style="width:48px;height:72px;object-fit:cover;border-radius:4px;"></td>
+            <td><img src="${escapeHtml(r.coverImage)}" alt="" style="width:48px;height:auto;display:block;border-radius:4px;"></td>
             <td class="title-cell">${escapeHtml(r.title)}${r.isAdult ? ` <span class="tag tag-adult">18+</span>` : ''}</td>
             <td data-label="狀態">
               <select class="status-select" onchange="updateLogField(${r.id},'status',this.value)">
