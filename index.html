@@ -60,13 +60,18 @@
   @media (max-width:768px){ .app{grid-template-columns:1fr;} }
   .sidebar{border-right:1px solid var(--border);padding:22px 14px;display:flex;flex-direction:column;gap:22px;}
   @media (max-width:768px){
-    /* 手機版導覽列原本整排(含登入狀態)一起橫向捲動,登入狀態排最後面要滑很遠才看得到；
-       改成只有 .nav 自己捲動、佔用剩餘空間,conn-status/auth-status 固定排在捲動區域「外面」,
-       永遠露出來,不會被捲動內容蓋住,也不用點到才看得到。 */
-    .sidebar{border-right:none;border-bottom:1px solid var(--border);flex-direction:row;align-items:center;padding:12px 14px;gap:10px;overflow:visible;min-width:0;}
-    .brand{display:none;}
-    .nav{flex:1;min-width:0;overflow-x:auto;}
-    .conn-status,.auth-status{flex:none;white-space:nowrap;}
+    /* 手機版header分兩排:第一排「站名＋帳號登入狀態」左右並排(brand靠左、
+       conn-status/auth-status用margin-left:auto推到最右邊),第二排是導覽列(橫向捲動)。
+       用flex-wrap+讓.nav的flex-basis:100%強制換行,不用改動HTML結構順序。
+       (踩過的坑:.nav以外的子元素不能有min-width:auto撐開整排,不然grid欄位會被撐寬
+       導致整頁被瀏覽器縮小顯示——這裡沿用外層.app grid已修過的min-width:0防呆。) */
+    .sidebar{border-right:none;border-bottom:1px solid var(--border);flex-direction:row;flex-wrap:wrap;
+      align-items:center;padding:10px 14px;gap:6px 10px;overflow:visible;min-width:0;}
+    .brand{display:block;order:1;flex:none;}
+    .brand p{display:none;}
+    .conn-status{order:2;flex:none;}
+    .auth-status{order:3;flex:none;margin-left:auto;}
+    .nav{order:4;flex:none;flex-basis:100%;width:100%;min-width:0;overflow-x:auto;}
   }
   .brand h1{font-size:1.15rem;font-weight:800;letter-spacing:.02em;}
   .brand p{margin:4px 0 0;font-size:.72rem;color:var(--fg-dim);}
@@ -97,6 +102,9 @@
   /* ---- 季度選擇 ---- */
   .season-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;}
   .season-bar select{padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);}
+  .season-bar select.year-jump{font-weight:700;cursor:pointer;}
+  .season-bar-hint{display:none;}
+  @media (max-width:768px){ .season-bar-hint{display:inline;font-size:.7rem;} }
   .season-bar .seg{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
   .season-bar .seg button{padding:7px 13px;background:var(--surface);border:none;border-right:1px solid var(--border);
     font-size:.8rem;color:var(--fg-dim);cursor:pointer;}
@@ -240,7 +248,7 @@
   .btn-sm{padding:5px 10px;font-size:.76rem;}
   .rm-track{margin-top:10px;background:none;border:none;color:var(--danger);font-size:.76rem;cursor:pointer;padding:0;}
 
-  /* ---- 表格(我的紀錄/待看待玩) ---- */
+  /* ---- 表格(追番紀錄) ---- */
   .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;}
   table{width:100%;border-collapse:collapse;min-width:820px;}
   th,td{padding:9px 12px;text-align:left;font-size:.8rem;border-bottom:1px solid var(--border);vertical-align:top;}
@@ -253,6 +261,30 @@
   .icon-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:4px 8px;cursor:pointer;color:var(--fg-dim);font-size:.72rem;}
   .icon-btn:hover{color:var(--danger);border-color:var(--danger);}
   .date-add-btn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:.72rem;padding:0;text-decoration:underline;}
+  /* 手機版把橫向捲動的表格改成直向卡片式排版,每一列變成一張卡片(封面+標題在上,
+     狀態/次數/觀看日期/備註直向堆疊在下,移除按鈕收在最下面)。用nth-child把固定順序
+     的7個td映射到grid-template-areas,不用改JS產生的DOM順序;data-label屬性(JS那邊
+     已加)搭配::before顯示小標籤,讓沒有th可看的直向卡片還是看得出每個欄位是什麼。 */
+  @media (max-width:768px){
+    .table-wrap{overflow-x:visible;border:none;border-radius:0;}
+    table{min-width:0;width:100%;border-collapse:separate;border-spacing:0;}
+    thead{display:none;}
+    tbody{display:flex;flex-direction:column;gap:12px;}
+    tr{display:grid;grid-template-columns:56px 1fr;column-gap:12px;row-gap:6px;
+      border:1px solid var(--border);border-radius:10px;padding:12px;background:var(--surface);
+      grid-template-areas:"cover title" "cover status" "cover count" "dates dates" "note note" "actions actions";}
+    td{display:block;padding:0;border-bottom:none;}
+    tr td:nth-child(1){grid-area:cover;}
+    tr td:nth-child(1) img{width:100%;height:auto;aspect-ratio:2/3;}
+    tr td:nth-child(2){grid-area:title;align-self:start;}
+    tr td:nth-child(3){grid-area:status;}
+    tr td:nth-child(4){grid-area:count;}
+    tr td:nth-child(5){grid-area:dates;margin-top:4px;padding-top:10px;border-top:1px solid var(--border);}
+    tr td:nth-child(6){grid-area:note;}
+    tr td:nth-child(7){grid-area:actions;justify-self:end;margin-top:2px;}
+    td[data-label]::before{content:attr(data-label);display:block;font-size:.64rem;color:var(--fg-dim);
+      letter-spacing:.02em;margin-bottom:3px;}
+  }
 
   /* ---- Modal ---- */
   .modal-backdrop{position:fixed;inset:0;background:rgba(10,9,6,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000;}
@@ -291,11 +323,15 @@
       </button>
       <button class="nav-item" data-tab="mylog" onclick="setTab('mylog')">
         <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="14" y2="18"/></svg>
-        我的紀錄
+        追番紀錄
       </button>
-      <button class="nav-item" data-tab="wishlist" onclick="setTab('wishlist')">
+      <button class="nav-item" data-tab="track" onclick="setTab('track')">
         <svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.2L12 16.9 6.4 20l1.4-6.2-4.8-4.3 6.4-.6z"/></svg>
-        待看待玩
+        追蹤中
+      </button>
+      <button class="nav-item" data-tab="favorites" onclick="setTab('favorites')">
+        <svg viewBox="0 0 24 24"><path d="M12 20s-7.2-4.4-9.5-9C1 7.6 2 4.4 5.3 3.6 8 2.9 10.2 4.3 12 7c1.8-2.7 4-4.1 6.7-3.4C22 4.4 23 7.6 21.5 11 19.2 15.6 12 20 12 20z"/></svg>
+        我的最愛
       </button>
     </nav>
     <div class="conn-status" id="conn-status">連線中…</div>
@@ -23680,7 +23716,7 @@ function renderAuthModalHtml(){
         <p style="font-size:.8rem;color:var(--fg-dim);margin-bottom:12px;">
           ${isSignup
             ? '設定一組帳號和密碼,之後在任何裝置輸入同一組帳密即可登入、看到同一份資料。'
-            : '輸入帳號密碼登入。「我的紀錄」「待看待玩」「首頁的追蹤中/我的喜愛」依帳號各自獨立保存,並可跨裝置同步。'}
+            : '輸入帳號密碼登入。「追番紀錄」「追蹤中」「我的最愛」依帳號各自獨立保存,並可跨裝置同步。'}
         </p>
         <div class="form-grid" style="grid-template-columns:1fr;">
           <label>帳號
@@ -23898,6 +23934,29 @@ function setTab(tab){
 }
 function changeYear(delta){ curYear += delta; loadCurrentSeason(); }
 function setSeasonKey(k){ curSeasonKey = k; loadCurrentSeason(); }
+function jumpToYear(y){ curYear = parseInt(y, 10); loadCurrentSeason(); }
+/* 季度瀏覽的年份下拉選單選項:不能只用CN_OVERLAY已收錄的年份(那只涵蓋建好資料庫的範圍),
+   季度瀏覽本身是即時打AniList、任何年份都能查,所以給一個夠寬的固定範圍(1963年,
+   日本電視動畫元年鐵臂阿童木開播那年,到明年),由近到遠排序方便跳到常用的年份。 */
+function yearJumpOptions(){
+  const nowY = new Date().getFullYear();
+  const maxY = Math.max(nowY + 1, curYear + 1);
+  const arr = [];
+  for(let y = maxY; y >= 1963; y--) arr.push(y);
+  return arr;
+}
+/* 季度列(.season-bar)左右滑動快速切換年份,手機版更方便跳選,不用一直點‹/›按鈕。
+   刻意只綁在.season-bar這個小範圍(不是整個海報牆),避免跟畫面本身的垂直捲動、
+   或詳情頁已經串接的瀏覽器邊緣滑動返回手勢互相干擾。 */
+let _seasonBarSwipeX = null;
+function seasonBarSwipeStart(e){ _seasonBarSwipeX = e.changedTouches[0].clientX; }
+function seasonBarSwipeEnd(e){
+  if(_seasonBarSwipeX == null) return;
+  const dx = e.changedTouches[0].clientX - _seasonBarSwipeX;
+  _seasonBarSwipeX = null;
+  if(Math.abs(dx) < 40) return; // 太短視為點擊/手抖,忽略
+  changeYear(dx < 0 ? 1 : -1); // 手指往左滑(dx<0) = 換下一年,往右滑 = 換上一年
+}
 
 function render(){
   const main = document.getElementById('main');
@@ -23907,9 +23966,11 @@ function render(){
     main.innerHTML = activeDetailId ? detailHtml() : browseHtml();
     if(!activeDetailId) wireBrowseControls();
   } else if(activeTab === 'mylog'){
-    main.innerHTML = logHtml('all');
-  } else if(activeTab === 'wishlist'){
-    main.innerHTML = logHtml('wish');
+    main.innerHTML = logHtml();
+  } else if(activeTab === 'track'){
+    main.innerHTML = simpleListHtml('track');
+  } else if(activeTab === 'favorites'){
+    main.innerHTML = simpleListHtml('favorites');
   }
 }
 /* 搜尋框每打一個字都整頁重繪的話,舊的 <input> 節點會被換成新的、焦點跟著不見,
@@ -24139,10 +24200,13 @@ function browseHtml(){
       正在搜尋全部 ${Object.keys(CN_OVERLAY).length} 部已收錄作品(不限季度)
       <button class="btn-ghost btn-sm" onclick="clearSearch()">✕ 清除搜尋,返回季度瀏覽</button>
     </div>` : `
-    <div class="season-bar">
-      <button class="nav-btn" onclick="changeYear(-1)">‹ ${curYear-1}</button>
-      <span class="mono" style="font-weight:700;">${curYear}</span>
-      <button class="nav-btn" onclick="changeYear(1)">${curYear+1} ›</button>
+    <div class="season-bar" ontouchstart="seasonBarSwipeStart(event)" ontouchend="seasonBarSwipeEnd(event)">
+      <button class="nav-btn" onclick="changeYear(-1)">‹</button>
+      <select class="mono year-jump" onchange="jumpToYear(this.value)" title="直接跳到指定年份">
+        ${yearJumpOptions().map(y=>`<option value="${y}" ${y===curYear?'selected':''}>${y}</option>`).join('')}
+      </select>
+      <button class="nav-btn" onclick="changeYear(1)">›</button>
+      <span class="watch-hint season-bar-hint">(可左右滑動切換年份)</span>
       <div class="seg">
         ${Object.keys(SEASON_LABELS).map(k=>`<button class="${k===curSeasonKey?'active':''}" onclick="setSeasonKey('${k}')">${SEASON_LABELS[k]}</button>`).join('')}
       </div>
@@ -24232,7 +24296,7 @@ function cardHtml(m){
       </div>
       <div class="card-actions">
         <button class="card-act-btn heart ${fav?'active':''}" onclick="toggleFavorite(${m.id})" title="${fav?'從喜愛清單移除':'加入喜愛清單'}">${fav?'♥':'♡'}</button>
-        <button class="card-act-btn track ${tracked?'active':''}" onclick="toggleTrack(${m.id})" title="${tracked?'從我的紀錄移除':'加入我的紀錄'}">${tracked?'✓ 追蹤中':'＋ 追蹤'}</button>
+        <button class="card-act-btn track ${tracked?'active':''}" onclick="toggleTrack(${m.id})" title="${tracked?'從追番紀錄移除':'加入追番紀錄'}">${tracked?'✓ 追蹤中':'＋ 追蹤'}</button>
       </div>
     </div>
   `;
@@ -24256,7 +24320,7 @@ function simpleCardHtml(row){
       </div>
       <div class="card-actions">
         <button class="card-act-btn heart ${fav?'active':''}" onclick="toggleFavorite(${row.id})" title="${fav?'從喜愛清單移除':'加入喜愛清單'}">${fav?'♥':'♡'}</button>
-        <button class="card-act-btn track ${tracked?'active':''}" onclick="toggleTrack(${row.id})" title="${tracked?'從我的紀錄移除':'加入我的紀錄'}">${tracked?'✓ 追蹤中':'＋ 追蹤'}</button>
+        <button class="card-act-btn track ${tracked?'active':''}" onclick="toggleTrack(${row.id})" title="${tracked?'從追番紀錄移除':'加入追番紀錄'}">${tracked?'✓ 追蹤中':'＋ 追蹤'}</button>
       </div>
     </div>
   `;
@@ -24448,14 +24512,14 @@ function trackBoxHtml(m, logRow){
   if(!logRow){
     return `
       <div class="track-box">
-        <h4>加入我的紀錄</h4>
-        <button class="btn" onclick="addToLog(${m.id})">＋ 加入我的紀錄</button>
+        <h4>加入追番紀錄</h4>
+        <button class="btn" onclick="addToLog(${m.id})">＋ 加入追番紀錄</button>
       </div>
     `;
   }
   return `
     <div class="track-box">
-      <h4>我的紀錄</h4>
+      <h4>追番紀錄</h4>
       <div class="track-row">
         <div class="field">
           <label>狀態</label>
@@ -24485,7 +24549,7 @@ function trackBoxHtml(m, logRow){
           </div>`).join('') || '<span class="watch-hint">尚未記錄觀看日期</span>'}
       </div>
       <button class="btn btn-ghost btn-sm" onclick="openDateForm(${m.id})">＋ 加一筆觀看日期</button>
-      <br><button class="rm-track" onclick="removeFromLog(${m.id})">從我的紀錄移除</button>
+      <br><button class="rm-track" onclick="removeFromLog(${m.id})">從追番紀錄移除</button>
     </div>
   `;
 }
@@ -24612,9 +24676,34 @@ function submitDate(id){
   closeModal(); render();
 }
 
-// ---------- 我的紀錄／待看待玩 表格 ----------
-function logHtml(scope){
-  const title = scope==='wish' ? '待看待玩清單' : '我的紀錄';
+/* 「追蹤中」「我的最愛」獨立分頁——跟首頁的追蹤中/我的喜愛用同一份資料(myLog/myFavorites)、
+   同一種卡片格線呈現方式(simpleCardHtml),只是首頁那份是塞在home-seg分頁裡的縮小版,
+   這裡是完整獨立頁面(有自己的page-head/共幾部),方便瀏覽跟點進詳情頁。
+   狀態/次數/觀看日期/備註等細節編輯留在「追番紀錄」那個表格頁,這裡純粹是視覺瀏覽用。 */
+function simpleListHtml(kind){
+  const title = kind==='track' ? '追蹤中' : '我的最愛';
+  if(authState === 'loading'){
+    return `<div class="page-head"><h2>${title}</h2></div><div class="state-box">連線同步中…</div>`;
+  }
+  if(!currentUser){
+    return `<div class="page-head"><h2>${title}</h2></div>
+      <div class="empty">登入後才能查看與同步「${title}」,資料依帳號分開保存,並可跨裝置同步。
+        <br><button class="btn btn-sm" style="margin-top:10px" onclick="openLoginModal()">登入</button></div>`;
+  }
+  const source = kind==='track' ? myLog : myFavorites;
+  const list = applyAdultFilter(source);
+  const emptyHint = kind==='track'
+    ? '還沒有追蹤任何作品,在卡片右下角按「＋ 追蹤」試試,或去「追番紀錄」加一筆。'
+    : '還沒有加入任何喜愛的作品,在卡片左下角按 ♡ 試試。';
+  return `
+    <div class="page-head"><h2>${title}<span class="count">共 ${list.length} 部</span></h2></div>
+    ${list.length ? `<div class="grid">${list.map(simpleCardHtml).join('')}</div>` : `<div class="empty">${emptyHint}</div>`}
+  `;
+}
+
+// ---------- 追番紀錄 表格 ----------
+function logHtml(){
+  const title = '追番紀錄';
   if(authState === 'loading'){
     return `<div class="page-head"><h2>${title}</h2></div><div class="state-box">連線同步中…</div>`;
   }
@@ -24626,8 +24715,7 @@ function logHtml(scope){
   if(logSyncState === 'loading'){
     return `<div class="page-head"><h2>${title}</h2></div><div class="state-box">連線同步中…</div>`;
   }
-  let rows = myLog;
-  if(scope==='wish') rows = rows.filter(r=>r.status==='想看'||r.status==='想玩');
+  const rows = myLog;
   const syncNote = logSyncState==='error'
     ? `<span class="badge-sample" title="${escapeHtml(logSyncError)}">⚠ 雲端連線失敗,目前顯示本機備份,未同步</span>`
     : `<span class="badge-sample">已同步雲端</span>`;
@@ -24641,25 +24729,25 @@ function logHtml(scope){
       <tbody>
         ${rows.map(r=>`
           <tr>
-            <td><img src="${escapeHtml(r.coverImage)}" alt="" style="width:44px;height:60px;object-fit:cover;border-radius:4px;"></td>
+            <td><img src="${escapeHtml(r.coverImage)}" alt="" style="width:48px;height:72px;object-fit:cover;border-radius:4px;"></td>
             <td class="title-cell">${escapeHtml(r.title)}${r.isAdult ? ` <span class="tag tag-adult">18+</span>` : ''}</td>
-            <td>
+            <td data-label="狀態">
               <select class="status-select" onchange="updateLogField(${r.id},'status',this.value)">
                 ${LOG_STATUS_OPTIONS.map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('')}
               </select>
             </td>
-            <td>
+            <td data-label="次數">
               <div class="stepper">
                 <button class="stepper-btn" onclick="bumpCount(${r.id},-1)">－</button>
                 <span class="mono">${r.count}</span>
                 <button class="stepper-btn" onclick="bumpCount(${r.id},1)">＋</button>
               </div>
             </td>
-            <td class="date-cell">
+            <td class="date-cell" data-label="觀看日期">
               ${(r.dates||[]).map((d,idx)=>`<div class="date-line"><span class="mono">${escapeHtml(d.date)}</span>${d.label?` <span class="watch-hint">${escapeHtml(d.label)}</span>`:''}<button class="date-del" onclick="removeDate(${r.id},${idx})">×</button></div>`).join('') || '<span class="watch-hint">尚未記錄</span>'}
               <button class="date-add-btn" onclick="openDateForm(${r.id})">＋ 加一筆</button>
             </td>
-            <td><input type="text" class="note-input" value="${escapeHtml(r.note||'')}" placeholder="輸入備註…" onchange="updateLogField(${r.id},'note',this.value)"></td>
+            <td data-label="備註"><input type="text" class="note-input" value="${escapeHtml(r.note||'')}" placeholder="輸入備註…" onchange="updateLogField(${r.id},'note',this.value)"></td>
             <td><button class="icon-btn" onclick="removeFromLog(${r.id})">移除</button></td>
           </tr>
         `).join('')}
