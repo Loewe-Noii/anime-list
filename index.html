@@ -167,6 +167,24 @@
 
   /* ---- 海報牆 ---- */
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;}
+  /* 手機版海報牆改成固定2或3欄(見 setMobileGridCols),取代桌面版的 auto-fill 響應式排版。 */
+  @media (max-width:768px){
+    body.grid-cols-3 .grid,body.grid-cols-3 .skeleton-grid{grid-template-columns:repeat(3,1fr);gap:8px;}
+    body.grid-cols-2 .grid,body.grid-cols-2 .skeleton-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+    body.grid-cols-3 .card-body h3{font-size:.72rem;}
+    body.grid-cols-3 .card-body .sub{font-size:.6rem;}
+    body.grid-cols-3 .card-actions{padding:0 6px 6px;gap:4px;}
+    body.grid-cols-3 .card-act-btn{padding:3px 6px;font-size:.62rem;}
+  }
+  .grid-cols-toggle{display:none;}
+  @media (max-width:768px){
+    .grid-cols-toggle{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;flex:none;}
+    .grid-cols-toggle button{display:flex;align-items:center;justify-content:center;width:34px;height:30px;
+      background:var(--surface);border:none;border-right:1px solid var(--border);color:var(--fg-dim);cursor:pointer;}
+    .grid-cols-toggle button:last-child{border-right:none;}
+    .grid-cols-toggle button.active{background:var(--accent);color:var(--accent-fg);}
+    .grid-cols-toggle svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;}
+  }
   .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;text-align:left;padding:0;display:flex;flex-direction:column;}
   .card:hover{border-color:var(--accent);}
   .card-open{cursor:pointer;display:block;}
@@ -23565,6 +23583,21 @@ let homeSection = 'popular'; // popular|track|favorite
 let popularMode = 'season'; // season(當季,只抓1季)|recent(近期,抓4季)|year(年度,下拉選年份抓4季)
 let popularYear = null; // 年度熱門選中的年份,null=尚未選(切到年度分頁時預設抓CN_OVERLAY最新年)
 const popularCache = {}; // key: 'season'|'recent'|`year-${year}` -> {list, state:'loading'|'idle'|'error'}
+/* 手機版海報牆一排顯示幾個(2或3),使用者偏好記在 localStorage,預設3個。
+   桌面版維持原本 auto-fill 響應式排版不受影響,只在 max-width:768px 的
+   mobile CSS 裡靠 body 的 grid-cols-2/3 class 覆寫欄數。 */
+let mobileGridCols = 3;
+try{
+  const savedCols = parseInt(localStorage.getItem('fanyouzhi_gridcols_v1'));
+  if(savedCols === 2 || savedCols === 3) mobileGridCols = savedCols;
+}catch(e){}
+function setMobileGridCols(n){
+  mobileGridCols = n;
+  try{ localStorage.setItem('fanyouzhi_gridcols_v1', String(n)); }catch(e){}
+  document.body.classList.toggle('grid-cols-2', n===2);
+  document.body.classList.toggle('grid-cols-3', n===3);
+  render();
+}
 let curYear = 2026, curSeasonKey = 'SUMMER';
 const SEASON_LABELS = {WINTER:'冬季(1-3月)', SPRING:'春季(4-6月)', SUMMER:'夏季(7-9月)', FALL:'秋季(10-12月)'};
 const SEASON_ORDER = {WINTER:0, SPRING:1, SUMMER:2, FALL:3};
@@ -23990,7 +24023,17 @@ function setHomeSection(s){
 }
 function homeHtml(){
   return `
-    <div class="page-head"><h2>首頁</h2></div>
+    <div class="page-head">
+      <h2>首頁</h2>
+      <div class="grid-cols-toggle">
+        <button class="${mobileGridCols===2?'active':''}" onclick="setMobileGridCols(2)" title="一排顯示2個" aria-label="一排顯示2個">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="16" rx="1.5"/><rect x="13" y="4" width="8" height="16" rx="1.5"/></svg>
+        </button>
+        <button class="${mobileGridCols===3?'active':''}" onclick="setMobileGridCols(3)" title="一排顯示3個" aria-label="一排顯示3個">
+          <svg viewBox="0 0 24 24"><rect x="2" y="4" width="5.3" height="16" rx="1.2"/><rect x="9.3" y="4" width="5.3" height="16" rx="1.2"/><rect x="16.6" y="4" width="5.3" height="16" rx="1.2"/></svg>
+        </button>
+      </div>
+    </div>
     <div class="home-seg">
       <button class="${homeSection==='popular'?'active':''}" onclick="setHomeSection('popular')">
         🔥 人氣熱門
@@ -24256,20 +24299,36 @@ async function ensureSeasonLoadedFor(id){
   return true;
 }
 async function openDetail(id){
+  // depth = 從列表頁開始算,這次要push的是第幾層詳情頁(點相關動畫連續深入時會累加)。
+  // 存進pushState的state裡,讓backToGrid()知道總共要跳幾層history才能真正回到列表頁。
+  let depth = 1;
   if(activeDetailId == null){
     // 只在「還沒開詳情頁」時記錄,避免從詳情頁點相關動畫時把位置/分頁洗掉
     browseScrollY = window.scrollY;
     returnToTab = activeTab;
+  } else if(history.state && typeof history.state.depth === 'number'){
+    depth = history.state.depth + 1;
   }
   if(!(await ensureSeasonLoadedFor(id))) return;
   activeDetailId = id; activeTab='browse'; render(); window.scrollTo({top:0});
   // 把這次開詳情頁記錄進瀏覽器歷史紀錄,這樣瀏覽器自己的「上一頁」按鈕/手機滑動返回手勢
   // 才會有反應——不然這個網站完全沒有跟瀏覽器的上一頁機制串接,只有畫面上的「返回列表」按鈕有用。
-  history.pushState({activeDetailId:id, returnToTab, browseScrollY}, '');
+  history.pushState({activeDetailId:id, returnToTab, browseScrollY, depth}, '');
 }
 function backToGrid(){
+  /* 踩過的坑:這個按鈕過去只切換畫面狀態(setTab),完全沒動到瀏覽器實際的
+     history位置——導致按這顆鈕離開詳情頁後,history堆疊裡還留著剛剛openDetail
+     push過的紀錄「原地不動」。下次再點別的作品又會從這筆殘留紀錄繼續push,
+     等使用者改用瀏覽器上一頁/手機滑動返回手勢時,就會退回那筆殘留的舊詳情頁,
+     出現「返回上一頁卻跳回之前看過的作品」的怪異bug。
+     修法:讀目前 history.state.depth(這趟總共push了幾層),用 history.go(-depth)
+     讓瀏覽器的history也一次跳回最初的列表頁,兩邊才會同步。這裡的popstate監聽
+     之後還會再收到一次(state=null),屆時depth已經是0不會重複跳轉,只是重跑一次
+     setTab/scrollTo,無害。 */
+  const depth = (history.state && history.state.depth) || 0;
   setTab(returnToTab); // 回到進來前的那個分頁(首頁或季度瀏覽),而不是永遠固定跳去季度瀏覽
   window.scrollTo({top: browseScrollY});
+  if(depth > 0) history.go(-depth);
 }
 /* 瀏覽器「上一頁」被按下(含手機滑動返回手勢)時觸發。如果上一筆歷史紀錄本身也是某個
    詳情頁(例如從相關動畫點過去、又按上一頁),就還原成那個詳情頁;如果是退回到最一開始
@@ -24334,12 +24393,6 @@ function detailHtml(){
             : (m.genres||[]).map(g=>`<span class="tag">${escapeHtml(g)}</span>`).join('')
         }</div>
         <div class="meta-grid">
-          <div class="meta-item"><span class="k">格式</span><span class="v">${escapeHtml(FORMAT_LABEL[m.format] || m.format || '未知')}</span></div>
-          <div class="meta-item"><span class="k">狀態</span><span class="v">${escapeHtml(STATUS_LABEL[m.status]||m.status)}</span></div>
-          <div class="meta-item"><span class="k">首播日期</span><span class="v mono">${fmtDate(m.startDate)}</span></div>
-          <div class="meta-item"><span class="k">總集數</span><span class="v mono">${m.episodes ? m.episodes+'話' : '未定'}${m.duration ? '(每話約'+m.duration+'分)':''}</span></div>
-          <div class="meta-item"><span class="k">完結日期</span><span class="v mono">${m.endDate && m.endDate.year ? fmtDate(m.endDate) : (m.status==='RELEASING' ? '連載中' : '未定')}</span></div>
-          <div class="meta-item"><span class="k">製作公司</span><span class="v">${escapeHtml((m.studios.nodes[0]||{}).name || '未知')}</span></div>
           <div class="meta-item span2">
             <span class="k">收看連結</span>
             <span class="v watch-links">
@@ -24351,6 +24404,12 @@ function detailHtml(){
               }
             </span>
           </div>
+          <div class="meta-item"><span class="k">格式</span><span class="v">${escapeHtml(FORMAT_LABEL[m.format] || m.format || '未知')}</span></div>
+          <div class="meta-item"><span class="k">狀態</span><span class="v">${escapeHtml(STATUS_LABEL[m.status]||m.status)}</span></div>
+          <div class="meta-item"><span class="k">首播日期</span><span class="v mono">${fmtDate(m.startDate)}</span></div>
+          <div class="meta-item"><span class="k">總集數</span><span class="v mono">${m.episodes ? m.episodes+'話' : '未定'}${m.duration ? '(每話約'+m.duration+'分)':''}</span></div>
+          <div class="meta-item"><span class="k">完結日期</span><span class="v mono">${m.endDate && m.endDate.year ? fmtDate(m.endDate) : (m.status==='RELEASING' ? '連載中' : '未定')}</span></div>
+          <div class="meta-item"><span class="k">製作公司</span><span class="v">${escapeHtml((m.studios.nodes[0]||{}).name || '未知')}</span></div>
         </div>
         <div class="synopsis">
           <h4>劇情簡介</h4>
@@ -24610,6 +24669,8 @@ function logHtml(scope){
 }
 
 // ---------- 啟動 ----------
+document.body.classList.toggle('grid-cols-2', mobileGridCols===2);
+document.body.classList.toggle('grid-cols-3', mobileGridCols===3);
 loadCurrentSeason();
 initAuth(); // 取代原本直接呼叫的 initLog()/initFavorites()——這兩個現在改由登入狀態決定時機才呼叫
 if(activeTab==='home' && homeSection==='popular') ensurePopularLoaded();
