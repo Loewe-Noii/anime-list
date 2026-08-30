@@ -23820,7 +23820,7 @@ function renderAuthModalHtml(){
         </div>
         <label class="adult-toggle" style="margin-top:10px;">
           <input id="auth-remember-input" type="checkbox" ${rememberAccountChecked?'checked':''} ${authModalState==='submitting'?'disabled':''}>
-          記住帳號(不會存密碼,下次開啟登入視窗自動帶入帳號)
+          記住帳號
         </label>
         ${authModalState==='error' ? `<p style="color:var(--danger);font-size:.8rem;margin-top:8px;">${escapeHtml(authModalError)}</p>` : ''}
         <div class="modal-actions" style="justify-content:space-between;align-items:center;">
