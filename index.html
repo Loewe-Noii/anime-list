@@ -439,6 +439,15 @@ let authFormMode = 'signin';  // signin|signup
 let authModalState = 'idle';  // idle|submitting|error
 let authModalError = '';
 let authFormAccount = '';     // 保留使用者輸入過的帳號,Modal 重繪時不用重打
+/* 「記住帳號」只存帳號字串(不是密碼)到localStorage,下次打開登入視窗自動帶入。
+   密碼絕對不存在瀏覽器裡——明文密碼放localStorage是常見的資安地雷,只要有人碰得到
+   這台裝置(或未來不小心中XSS)就等於直接拿到密碼,這個風險不划算,所以密碼欄位
+   還是要手動輸入。好消息是Supabase Auth本身預設就會把登入狀態(session token)存
+   在localStorage、自動維持登入,同一台瀏覽器正常不需要每次重新輸入帳密——只有
+   換裝置/換瀏覽器、或清過瀏覽器資料、或自己按登出時才需要重新輸入，這時「記住帳號」
+   至少能省下重打帳號的功夫。 */
+const REMEMBER_ACCOUNT_LS_KEY = 'fanyouzhi_remember_account_v1';
+let rememberAccountChecked = true;
 
 function rowFromDb(r){
   return { id: r.id, title: r.title, coverImage: r.cover_image, status: r.status,
@@ -23720,7 +23729,7 @@ let searchResults = null; // null = 未搜尋(顯示當季);陣列 = 全站搜�
 let searchState = 'idle'; // idle|loading
 let searchDebounceTimer = null;
 let formatFilter = 'ALL';
-let hideAdult = false;
+let hideAdult = true; // 預設隱藏成人動畫,使用者要看的話自己去取消勾選
 let onlyAdult = false;
 let activeDetailId = null; // AniList media id currently viewed, or null = list
 let browseScrollY = 0; // 進詳情頁前的捲動位置,「返回列表」時要還原,不然每次都會跳回最頂
@@ -23775,7 +23784,12 @@ function renderAuthStatus(){
   }
 }
 function openLoginModal(){
-  authFormMode = 'signin'; authModalState = 'idle'; authModalError = ''; authFormAccount = '';
+  authFormMode = 'signin'; authModalState = 'idle'; authModalError = '';
+  try{
+    const saved = localStorage.getItem(REMEMBER_ACCOUNT_LS_KEY);
+    authFormAccount = saved || '';
+    rememberAccountChecked = !!saved || rememberAccountChecked;
+  }catch(e){ authFormAccount = ''; }
   renderAuthModalHtml();
 }
 function toggleAuthFormMode(){
@@ -23804,6 +23818,10 @@ function renderAuthModalHtml(){
               autocomplete="${isSignup?'new-password':'current-password'}" ${authModalState==='submitting'?'disabled':''}>
           </label>
         </div>
+        <label class="adult-toggle" style="margin-top:10px;">
+          <input id="auth-remember-input" type="checkbox" ${rememberAccountChecked?'checked':''} ${authModalState==='submitting'?'disabled':''}>
+          記住帳號(不會存密碼,下次開啟登入視窗自動帶入帳號)
+        </label>
         ${authModalState==='error' ? `<p style="color:var(--danger);font-size:.8rem;margin-top:8px;">${escapeHtml(authModalError)}</p>` : ''}
         <div class="modal-actions" style="justify-content:space-between;align-items:center;">
           <button class="btn btn-ghost btn-sm" style="border:none;text-decoration:underline;padding:0;background:transparent;" onclick="toggleAuthFormMode()">
@@ -23828,14 +23846,21 @@ function translateAuthError(msg){
 function submitAuthForm(){
   const accInput = document.getElementById('auth-account-input');
   const pwInput = document.getElementById('auth-password-input');
+  const rememberInput = document.getElementById('auth-remember-input');
   const account = (accInput ? accInput.value : '').trim();
   const password = pwInput ? pwInput.value : '';
+  rememberAccountChecked = rememberInput ? rememberInput.checked : rememberAccountChecked;
   if(!/^[a-zA-Z0-9_.-]{3,32}$/.test(account)){
     authModalState='error'; authModalError='帳號請用3~32碼英數字/底線/句點/減號'; renderAuthModalHtml(); return;
   }
   if(password.length < 6){
     authModalState='error'; authModalError='密碼至少要6碼'; renderAuthModalHtml(); return;
   }
+  // 只存帳號字串,絕對不存密碼——見上方REMEMBER_ACCOUNT_LS_KEY註解的理由。
+  try{
+    if(rememberAccountChecked) localStorage.setItem(REMEMBER_ACCOUNT_LS_KEY, account);
+    else localStorage.removeItem(REMEMBER_ACCOUNT_LS_KEY);
+  }catch(e){}
   authFormAccount = account; authModalState = 'submitting'; renderAuthModalHtml();
   const email = account + '@' + AUTH_ACCOUNT_DOMAIN;
   const call = authFormMode === 'signup'
