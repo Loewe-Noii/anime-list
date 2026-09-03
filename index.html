@@ -69,9 +69,22 @@
        conn-status/auth-status用margin-left:auto推到最右邊),第二排是導覽列(橫向捲動)。
        用flex-wrap+讓.nav的flex-basis:100%強制換行,不用改動HTML結構順序。
        (踩過的坑:.nav以外的子元素不能有min-width:auto撐開整排,不然grid欄位會被撐寬
-       導致整頁被瀏覽器縮小顯示——這裡沿用外層.app grid已修過的min-width:0防呆。) */
+       導致整頁被瀏覽器縮小顯示——這裡沿用外層.app grid已修過的min-width:0防呆。)
+       【2026-09-04新增】手機版往下捲動後這排header會被捲出畫面,想切分頁要先滑回最上面,
+       使用者反映「無法及時切換」。原本先做成position:sticky固定在頂部,但使用者更想要
+       「往下捲自動收起、往上捲自動浮現」(類似YouTube App)這種不佔固定空間的做法,
+       改成position:fixed讓header完全脫離文件流、飄浮在最上層,用transform滑進/滑出。
+       fixed脫離文件流後底下的.app就少了原本sidebar佔的高度,靠JS量測header實際高度
+       寫進--mobile-hdr-h這個CSS變數,.app補上等高的padding-top補償,內容才不會被
+       蓋住。z-index要蓋過底下的卡片格線,background要跟頁面底色一致,不然捲動時底下
+       內容會透出來/滑動時穿幫。季度瀏覽頁自己的年份/篩選控制項(.season-bar/.toolbar等)
+       不在這個fixed header裡面,維持原本會被捲上去的行為。 */
     .sidebar{border-right:none;border-bottom:1px solid var(--border);flex-direction:row;flex-wrap:wrap;
-      align-items:center;padding:10px 14px;gap:6px 10px;overflow:visible;min-width:0;}
+      align-items:center;padding:10px 14px;gap:6px 10px;overflow:visible;min-width:0;
+      position:fixed;top:0;left:0;right:0;z-index:30;background:var(--bg);
+      transition:transform .25s ease;will-change:transform;}
+    .sidebar.nav-hidden{transform:translateY(-100%);}
+    .app{padding-top:var(--mobile-hdr-h, 96px);}
     .brand{display:block;order:1;flex:none;}
     .brand p{display:none;}
     .conn-status{order:2;flex:none;}
@@ -6798,7 +6811,8 @@ const CN_OVERLAY = {
   "genre": "動作、奇幻、冒險、超能力",
   "desc": "成振宇已躍升為獵人界的頂點，率領忠誠的影子軍團鎮守首爾。當來歷不明的強敵接連現身，各國頂尖獵人也被牽扯進這場風暴，昔日濟州島事件的隱情逐漸浮上檯面，振宇必須在守護所愛之人與探究自身力量根源之間，做出攸關存亡的抉擇。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81749761"
  },
  "177709": {
   "title": "SAKAMOTO DAYS 坂本日常",
@@ -6807,7 +6821,8 @@ const CN_OVERLAY = {
   "desc": "曾是業界人人畏懼的傳說殺手坂本太郎，為了心愛的妻女金盆洗手，如今頂著發福的身材在鄉間經營一間小雜貨店。然而樹大招風，昔日同行與各方殺手陸續找上門，坂本只能在守護平凡家庭生活與重出江湖的鋒芒之間，展開一場場荒謬又火爆的攻防戰。",
   "year": 2025,
   "season": "WINTER",
-  "series": "sakamoto-days"
+  "series": "sakamoto-days",
+  "netflix": "https://www.netflix.com/tw/title/81663325"
  },
  "176301": {
   "title": "藥師少女的獨語 第二季",
@@ -6816,7 +6831,8 @@ const CN_OVERLAY = {
   "desc": "身懷藥學知識的少女貓貓，繼續在後宮以敏銳觀察力破解一件件離奇案件。隨著她與宦官壬氏的關係日漸微妙，後宮深處的權力鬥爭與陳年秘辛也逐步浮現，貓貓憑著一身藥學本領與過人膽識，在爾虞我詐的宮廷中步步逼近真相核心。",
   "year": 2025,
   "season": "WINTER",
-  "series": "kusuriya-hitorigoto"
+  "series": "kusuriya-hitorigoto",
+  "netflix": "https://www.netflix.com/tw/title/81712068"
  },
  "172019": {
   "title": "Dr.STONE 新石紀 第四季",
@@ -6825,7 +6841,10 @@ const CN_OVERLAY = {
   "desc": "石化危機終於邁入尾聲，千空一行人為了拯救受困海外的夥伴與探索石化事件背後的真相，將科學力發揮到極致，挑戰前所未有的太空與跨海壯舉。面對神秘對手與時間的雙重壓力，這群科學少年要用知識與友情譜寫石之世界的最終章。",
   "year": 2025,
   "season": "WINTER",
-  "series": "dr-stone-science-future"
+  "series": "dr-stone-science-future",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtRH5DnE3OZ6Ov-_SNn73dOQ",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81046193"
  },
  "172258": {
   "title": "超超超超超喜歡你的100個女朋友 第二季",
@@ -6834,7 +6853,9 @@ const CN_OVERLAY = {
   "desc": "被班上女同學集體告白後，蓮太郎立下要讓一百位女友都獲得真心對待的荒唐誓言，本季故事持續擴張這段誇張的多角戀情。新面孔陸續登場，各懷心思的女孩們圍繞著蓮太郎展開更加脫序爆笑的搶愛大戰，考驗著他能否真心待每一人。",
   "year": 2025,
   "season": "WINTER",
-  "series": "100-girlfriends"
+  "series": "100-girlfriends",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfrBAso20K8Yx_bb_JhyVYqK",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "178462": {
   "title": "我和班上最討厭的女生結婚了。",
@@ -6842,7 +6863,8 @@ const CN_OVERLAY = {
   "genre": "戀愛喜劇、校園",
   "desc": "因家中長輩的一紙婚約，男主角被迫與班上公認最難相處、彼此互看不順眼的女同學結為夫妻。兩人從針鋒相對的同班關係一夕變成朝夕相處的家人，在磕磕絆絆的新婚生活中，逐漸發現對方不為人知的另一面，情愫也悄悄滋長。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81991112"
  },
  "176273": {
   "title": "全修。",
@@ -6858,7 +6880,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、動作、喜劇、冒險",
   "desc": "身為冒險者公會櫃檯接待員的亞莉雅，其實隱藏著能單挑迷宮頭目的驚人實力。只因為受夠冒險者拖泥帶水耽誤下班時間，她乾脆親自出馬速戰速決，好準時返家享受悠閒生活。這份為了準時下班而全力以赴的荒謬理由，意外掀起不小的風波。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81988348"
  },
  "175443": {
   "title": "青春特調蜂蜜檸檬蘇打",
@@ -6874,7 +6897,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、動作、冒險、異世界",
   "desc": "被眾人視為毫無戰鬥價值的「鑑定士」職業，讓少年亞爾斯自幼遭到隊伍拋棄、獨自墜入危機四伏的地底深淵。他在絕境中鍛鍊出能看穿萬物本質的至強「神眼」，蛻變為深不可測的強者，如今帶著這身被低估的力量重返地面，準備一雪前恥。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfoVJ-29KILJxi5z9ENoHRGN",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/82172678"
  },
  "169441": {
   "title": "我的幸福婚約 第二季",
@@ -6883,7 +6909,8 @@ const CN_OVERLAY = {
   "desc": "在繼母虐待下長大、原以為自己毫無異能的美世，因未婚夫久堂清霞的溫柔而逐漸敞開心房，覺醒了沉睡已久的力量。本季故事中，美世與清霞的感情持續加深，兩人也將共同面對圍繞著異能與家族恩怨而起的更大陰謀與考驗。",
   "year": 2025,
   "season": "WINTER",
-  "series": "watashi-no-shiawase-kekkon"
+  "series": "watashi-no-shiawase-kekkon",
+  "netflix": "https://www.netflix.com/tw/title/81564905"
  },
  "179696": {
   "title": "這公司有我喜歡的人",
@@ -6891,7 +6918,10 @@ const CN_OVERLAY = {
   "genre": "戀愛、職場、喜劇",
   "desc": "在同一間公司上班的兩位社員，各自默默將對方放在心上，卻因害怕破壞同事情誼與職場氣氛，遲遲不敢跨出告白的一步。故事以輕鬆詼諧的筆觸，描繪這對嘴笨又彆扭的男女，如何在辦公室的日常互動中，一點一滴拉近彼此距離。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=_L4Jk2VrZ8g",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/82027410"
  },
  "177506": {
   "title": "遲早是最強的鍊金術師？",
@@ -6915,7 +6945,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、冒險、動作、師徒",
   "desc": "曾在頂尖A級隊伍中擔任培育者的男子選擇急流勇退，轉而收留幾名昔日教導過的弟子，共組一支全新隊伍重返冒險最前線。師徒攜手面對比過往更加險惡的迷宮深處，昔日的教學情誼也在並肩作戰中，昇華為值得信賴的夥伴羈絆。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81989763"
  },
  "179689": {
   "title": "平凡上班族到異世界當上了四天王的故事",
@@ -6923,7 +6954,8 @@ const CN_OVERLAY = {
   "genre": "異世界、喜劇、奇幻、職場",
   "desc": "在職場身經百戰、深諳團隊管理與談判之道的普通上班族，一覺醒來竟穿越到劍與魔法的異世界。憑著在人類社會磨練出的商務手腕與溝通長才，他陰錯陽差獲得魔王軍賞識，一路平步青雲坐上四天王之位，用企業思維治理起異世界的內政。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/82027374"
  },
  "180292": {
   "title": "中年男的異世界網購生活",
@@ -6955,7 +6987,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、喜劇、轉生、宮廷",
   "desc": "一名兢兢業業的中年公務員猝逝後，意外轉生成戀愛遊戲中注定迎向悲慘結局的反派大小姐。頂著少女的外表卻懷抱大叔的處世智慧與職場歷練，他決心運用豐富的人生經驗周旋於貴族社交圈，設法翻轉劇本，替這位千金搏得一條生路。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81990125"
  },
  "176642": {
   "title": "天久鷹央的推理病歷表",
@@ -6963,7 +6996,8 @@ const CN_OVERLAY = {
   "genre": "推理、醫療、懸疑",
   "desc": "在醫院地下室坐鎮的天才女醫師天久鷹央，個性古怪卻擁有洞察病灶真相的驚人直覺。每當院內出現連常規檢查都束手無策的離奇病例，她總能憑藉紮實醫學知識與縝密推理抽絲剝繭，和搭檔記者一同揭開一件件疑難雜症背後的真相。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81991098"
  },
  "165171": {
   "title": "金牌得主",
@@ -6972,7 +7006,9 @@ const CN_OVERLAY = {
   "desc": "曾懷抱奧運夢卻半途放棄的花式滑冰選手司，在鄉下邂逅了充滿天賦卻缺乏自信的小女孩紀夢。兩人一拍即合，司決定重拾教練身分，陪伴紀夢一步步踏上競技舞台。這是一段關於跌倒後重新站起、在冰刀上找回勇氣與夢想的成長故事。",
   "year": 2025,
   "season": "WINTER",
-  "series": "medalist"
+  "series": "medalist",
+  "youtube": "https://www.youtube.com/playlist?list=PLfGRknL5vWcK2-9ljZ6-tbHf9QT1beQCa",
+  "youtubeSource": "アニメ『メダリスト』官方頻道(日本製作委員會官方頻道)"
  },
  "176063": {
   "title": "雖然我是注定沒落的貴族 閒來無事只好來深究魔法",
@@ -6989,7 +7025,10 @@ const CN_OVERLAY = {
   "desc": "就讀怪異雲集的鴉天神明學園的八尋寧寧，與棲身女廁第三間隔間的妖怪少年花子君，攜手調查校園中口耳相傳的七大不可思議傳說。本季故事持續深挖花子君神秘身世背後的悲傷過往，人與妖之間看似平淡的日常，也逐漸醞釀出更深沉的謎團。",
   "year": 2025,
   "season": "WINTER",
-  "series": "hanako-kun-s2"
+  "series": "hanako-kun-s2",
+  "youtube": "https://www.youtube.com/playlist?list=PLuxqoToY7UciZkcJ7JPvr1FixxzAbbvXK",
+  "youtubeSource": "Muse木棉花-HK",
+  "netflix": "https://www.netflix.com/tw/title/81233565"
  },
  "179297": {
   "title": "魔法製造者 ～異世界魔法的製作方法～",
@@ -7005,7 +7044,9 @@ const CN_OVERLAY = {
   "genre": "動作、冒險、喜劇、奇幻、福利",
   "desc": "與魔物大軍纏鬥至死的騎士，死後意外轉生為傳說中的S級魔物「貝希摩斯」，本該是令人聞風喪膽的強者，幼體外表卻像極了一隻小貓。瀕死之際被精靈女冒險者拾獲收留，從此頂著貓咪偽裝，以寵物兼護衛的身分守在她身邊，展開一段啼笑皆非的偽裝同居生活。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfqZWTNZyw8Mvfdf0cbf3Xxo",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "175198": {
   "title": "Ubel Blatt ～斬魔凶刃～",
@@ -7029,7 +7070,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、戀愛、日常",
   "desc": "轉學到步調悠閒的沖繩後，中村照秋對開朗的喜屋武同學一見傾心，偏偏對方一開口就是聽不懂的濃厚方言，讓兩人交流狀況百出。幸好班上的比嘉同學願意居中翻譯，替兩人化解一場又一場的誤會，而比嘉自己的心思，似乎也悄悄起了變化。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLoGVqODys23B5O1JsQYajcOnCNSarAMsC",
+  "youtubeSource": "回歸線娛樂"
  },
  "185880": {
   "title": "青之驅魔師 終夜篇",
@@ -7046,7 +7089,9 @@ const CN_OVERLAY = {
   "desc": "為了保護遭妖魔盯上的平凡上班族厚見司，天才女忍者出浦静流主動與他締結主僕契約，條件是必須同住一個屋簷下。明明能瞬間制伏強敵，静流私底下卻是個成天窩在家打電動的尼特族，兩人這段又懶散又溫馨的同居生活，也吸引了其他個性古怪的忍者夥伴陸續登場。",
   "year": 2025,
   "season": "WINTER",
-  "series": "netto-ninja"
+  "series": "netto-ninja",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtRIqwsZJVYQaFgTdzbtBwQU",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "179998": {
   "title": "怪獸 8 號：Mission Recon",
@@ -7095,7 +7140,9 @@ const CN_OVERLAY = {
   "genre": "劇情、日常",
   "desc": "在人口僅六百人的渡名喜島上，春山花最大的樂趣就是為島上孩子朗讀故事。她的朗讀天賦被廣播社社長美月一眼看中，力邀她加入社團。從未想過要與人一較高下的花，就此一腳踏入充滿競爭與熱情的朗讀世界，開始尋找屬於自己真正熱愛之事的旅程。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLoGVqODys23CRoKR6r8irXRbbLFNqiOlT",
+  "youtubeSource": "回歸線娛樂"
  },
  "169295": {
   "title": "BanG Dream! Ave Mujica",
@@ -7103,7 +7150,9 @@ const CN_OVERLAY = {
   "genre": "劇情、音樂、心理",
   "desc": "一夜之間失去所有的十河篠奏，選擇伸手邁向更深的深淵，把身邊各自背負著傷痛與慾望的少女們一同捲入其中。她一手拉開名為「Ave Mujica」的華麗假面舞會序幕，在這座悲傷、恐懼、愛與遺忘都被剝奪殆盡的舞台上，眾人終將撕下面具，還是就此墜落。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLuxqoToY7UcgailV895QQWiOgwZ8st8WS",
+  "youtubeSource": "Muse木棉花"
  },
  "175409": {
   "title": "終究，與你相戀。",
@@ -7112,7 +7161,9 @@ const CN_OVERLAY = {
   "desc": "2020年那個特殊的夏天，高二女生瑞葉迎來最糟的十七歲生日：暗戀的學長毫無進展，家人忘記她的生日，社團比賽與畢業旅行也因疫情接連取消。就在她以為青春將就此黯淡收場時，從小一起長大、情同家人的青梅竹馬瑞希，忽然宣布要成為她的男友候選人。",
   "year": 2025,
   "season": "WINTER",
-  "series": "douse-koishite"
+  "series": "douse-koishite",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtTY1mIwlPOHTnC61IyRc_S4",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "176234": {
   "title": "異修羅 第二季",
@@ -7129,7 +7180,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、奇幻、戀愛",
   "desc": "公爵千金蕾媞西亞從小被許配給王太子克拉克，並依約接受嚴格的太子妃教育，內心卻始終盼著對方能愛上別人。當克拉克真的帶著另一位女子出席舞會時，蕾媞西亞喜出望外地逃往鄉下展開新生活，沒想到克拉克竟一路追來，決心要贏回她的心。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfo2b2zJY0wWMqzo0TSAEn27",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "170916": {
   "title": "魔法使的約定",
@@ -7137,7 +7190,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、劇情",
   "desc": "一個月圓之夜，正崎晶意外來到魔法師與人類共存的異世界。這個世界每年都要迎戰從天而降、足以毀滅一切的巨大月亮，而肩負迎戰重任的正是被稱為「賢者魔法師」的戰士們。晶漸漸發現，自己被召喚至此並非偶然，而是被選中要率領眾人迎戰這場宿命之戰。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=gZPoZLNQBPA",
+  "youtubeSource": "曼迪Mighty TV"
  },
  "145740": {
   "title": "灰色：幻影扳機",
@@ -7161,7 +7216,9 @@ const CN_OVERLAY = {
   "genre": "動作、冒險、懸疑、科幻、日常",
   "desc": "機械侵略者席捲一切、幾乎抹殺所有生命之後，失去記憶的少女蓮華獨自運用自身異能在殘破城市中求生，直到遇見另外五名同樣擁有特殊力量的女孩。她們在與機械怪物交戰的空檔裡一起做飯、相互扶持，一邊拼湊各自失落的記憶與力量的真相，一邊在友情中找回活下去的力量。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=OH-qTpcQRfM",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "174596": {
   "title": "一桿青空",
@@ -7169,7 +7226,9 @@ const CN_OVERLAY = {
   "genre": "運動、日常、喜劇",
   "desc": "「照這樣下去，我畢業時大概只會是個路人角色A！」對自己毫無特色感到苦惱的青葉南，某天偶然路過高爾夫練習場，被熱心的工讀生赤音晴搭話，就此拿起球桿。從零開始接觸高爾夫的南，將與天才少女晴，以及夢想成為網紅的星見彩夏一起揮桿，尋找屬於自己閃閃發光的瞬間。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtRm8Si7UMuqOl1Rbk5kZFKW",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "154392": {
   "title": "凡爾賽玫瑰 新作",
@@ -7177,7 +7236,8 @@ const CN_OVERLAY = {
   "genre": "冒險、劇情、戀愛",
   "desc": "紀念原作漫畫連載五十週年推出的劇場版。為締結兩國同盟，奧地利公主瑪麗·安東妮遠嫁法國，成為路易十六的王妃。抵達凡爾賽宮後，她結識了外表俊美、實為女兒身的近衛隊長奧斯卡，兩人因志趣相投而結為摯友，卻在王室的重重規範與權力誘惑之下，各自面臨身分與忠誠的考驗。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81177638"
  },
  "154064": {
   "title": "伊人製造",
@@ -7193,7 +7253,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、驚悚、懸疑、妖怪",
   "desc": "承接劇場系列首章的故事,神秘藥賣郎再度登場。他這回踏入一棟氣氛詭譎的宅邸,屋內流傳著與火鼠有關的傳聞,多年來積累的怨恨與謊言逐漸浮上檯面。藥賣郎依循「形、真、理」三要素抽絲剝繭,唯有揭穿人心底層的真相,才能讓作祟的妖異獲得安息,一場智鬥與驅魔對決就此展開。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81580575"
  },
  "182158": {
   "title": "學姊是男孩劇場版：雨後天晴",
@@ -7210,7 +7271,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、動作、戰爭、冒險",
   "desc": "在被高塔統治者支配的世界「費莉西達」,少年黑鐵天曾是備受寵愛的貴族之子,卻在一夕之間淪為階下囚。他意外覺醒培育怪物「精靈」的能力,率領由邊緣人組成的隊伍投身叛亂,誓言推翻腐敗的統治階級。人與怪物並肩作戰的熱血戰記就此展開。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLxSscENEp7Jju9jZyfPvPCWVljX8k4yjY",
+  "youtubeSource": "Ani-One Asia",
+  "netflix": "https://www.netflix.com/tw/title/82027391"
  },
  "175422": {
   "title": "吸吸吸吸吸血鬼",
@@ -7218,7 +7282,8 @@ const CN_OVERLAY = {
   "genre": "喜劇、奇幻、日常",
   "desc": "以誇張擬聲詞為名的原創喜劇,主角是一名混跡人類社會、行事脫線的吸血鬼。他一邊隱藏自己非人的真實身分,一邊被捲入校園與日常生活中各種荒謬事件,插科打諢的吐槽與胡鬧橋段不斷,將傳統吸血鬼設定徹底解構成一部節奏明快的無厘頭喜劇。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81949674"
  },
  "177778": {
   "title": "忍者蝙蝠俠對極道聯盟",
@@ -7234,7 +7299,9 @@ const CN_OVERLAY = {
   "genre": "魔法少女、奇幻、音樂、兒童",
   "desc": "光之美少女系列最新作,以偶像舞台為主題,描述一群懷抱閃亮夢想的少女,因緣際會獲得變身能力,一邊在舞台上發光發熱、一邊守護世界免於邪惡侵擾。歌聲與友情成為她們最強大的武器,伴隨觀眾一起感受追夢路上的汗水與感動。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLo_HY74ov2N0bnTaRCRe4PREeFtnVOagp",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "181440": {
   "title": "ALDNOAH.ZERO 雨之斷章 -The Penultimate Truth-",
@@ -7250,7 +7317,9 @@ const CN_OVERLAY = {
   "genre": "運動、喜劇、特別篇",
   "desc": "美國職籃洛杉磯湖人隊與人氣海賊冒險作品跨界聯手打造的特別動畫短片,將魯夫一行人的草帽海賊團形象與湖人球隊元素巧妙結合,以輕鬆詼諧的方式呈現球場與海上冒險的奇妙交會,是雙方粉絲都能會心一笑的跨界合作企劃。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=VfKwPIbycbg",
+  "youtubeSource": "ONE PIECE Official - ENG（官方頻道）"
  },
  "185714": {
   "title": "ALDNOAH.ZERO（Re+）",
@@ -7283,7 +7352,8 @@ const CN_OVERLAY = {
   "desc": "隨劇場版同步推出的番外小短篇,暫時放下正片緊張的生死對決,將鏡頭轉向雄英學生們難得的日常時光。以輕鬆詼諧的基調描繪班級同學間鬥嘴、互損又互相扶持的校園日常,讓觀眾在大戰前後喘口氣,重新感受這群未來英雄最真實可愛的一面。",
   "year": 2025,
   "season": "WINTER",
-  "series": "boku-no-hero-academia"
+  "series": "boku-no-hero-academia",
+  "netflix": "https://www.netflix.com/tw/title/82036353"
  },
  "162921": {
   "title": "想星的亞庫艾里翁 Myth of Emotions",
@@ -7299,7 +7369,9 @@ const CN_OVERLAY = {
   "genre": "兒童、奇幻、日常、冒險",
   "desc": "寶可夢官方推出的短篇動畫,描繪一隻性格憨厚的快龍化身郵差助手,穿梭於山林與小鎮之間,協助遞送一封封承載心意的信件與包裹。途中牠與各地居民及寶可夢展開溫馨互動,傳遞出即便路途遙遠,真心的心意依然能準時送達的溫暖訊息。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=oHgcVr_CRQs",
+  "youtubeSource": "Pokémon Company官方頻道"
  },
  "186148": {
   "title": "貓貓的獨語 第二季",
@@ -7308,7 +7380,8 @@ const CN_OVERLAY = {
   "desc": "取材自人氣宮廷推理作品的短篇衍生動畫,以簡化可愛的畫風呈現藥師少女貓貓在後宮生活中的日常趣事。第二季延續詼諧輕快的步調,透過一則則短小精悍的小故事,展現貓貓毒舌又機靈的一面,是本篇之外的輕鬆番外調劑。",
   "year": 2025,
   "season": "WINTER",
-  "series": "maomao-hitorigoto"
+  "series": "maomao-hitorigoto",
+  "netflix": "https://www.netflix.com/tw/title/81989866"
  },
  "167742": {
   "title": "UniteUp! 眾星齊聚 -Uni:Birth-",
@@ -7316,7 +7389,9 @@ const CN_OVERLAY = {
   "genre": "音樂、偶像、校園、友情",
   "desc": "跨媒體男子偶像企劃的動畫續篇,聚焦一群懷抱不同背景與夢想的少年,在成團之路上經歷磨合、挫折與成長。他們必須克服彼此價值觀的差異,學習真正團結一心,才能在競爭激烈的舞台上,唱出屬於自己這個世代的嶄新聲音。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfrrYxYr-n1f98iIkr_BDSPt",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "185992": {
   "title": "我與尼特女忍者的莫名同居生活 OVA",
@@ -7333,7 +7408,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、戀愛喜劇、冒險、遊戲改編",
   "desc": "改編自人氣手機遊戲的最新動畫企劃,以「引導初綻之花」為主題,描述冒險者一行人在奇幻世界中遇見一位背負特殊使命的新角色。眾人在互相扶持、解決危機的過程中,逐漸揭開隱藏在花朵意象背後的溫柔羈絆與成長故事。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=lDxF3SSvwhc",
+  "youtubeSource": "プリンセスコネクト！Re:Dive 官方頻道（Cygames）"
  },
  "185088": {
   "title": "闇芝居 第十四季",
@@ -7350,7 +7427,9 @@ const CN_OVERLAY = {
   "genre": "科幻、動作、喜劇、日常",
   "desc": "在守護世界免於巨大異形侵襲的緊張日常之外,這回鏡頭轉向少女們難得的廚房時光。以割烹料理為主題的溫馨番外篇,呈現戰鬥女孩們卸下裝備、圍在爐台前手忙腳亂又充滿笑聲的日常片段,展現她們戰鬥身分背後最生活化的一面。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfquIj_VgrFHUMVuwgNPco5Y",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "185462": {
   "title": "0歲起跑衝刺物語 第二季",
@@ -7367,7 +7446,8 @@ const CN_OVERLAY = {
   "desc": "經典摔角漫畫改編動畫的最新續篇,承接完美超人始祖篇的激戰,金肉人與夥伴們必須面對比以往更強大的遠古超人集團。第二季持續以浮誇招式與兄弟情誼交織出熱血對決,每一場擂台戰都考驗著角色們的意志與羈絆極限。",
   "year": 2025,
   "season": "WINTER",
-  "series": "kinnikuman-perfect-origin"
+  "series": "kinnikuman-perfect-origin",
+  "netflix": "https://www.netflix.com/tw/title/81781519"
  },
  "187380": {
   "title": "航海王 原創集數/魯夫、羅",
@@ -7375,7 +7455,9 @@ const CN_OVERLAY = {
   "genre": "冒險、動作、奇幻、喜劇",
   "desc": "電視動畫的原創單元集數,跳脫既有漫畫劇情框架,聚焦草帽船長魯夫與盟友托拉法爾加・羅之間鮮少被深入描寫的互動與默契。這段獨立插曲以輕鬆詼諧又不失熱血的筆調,補完兩人並肩作戰背後,那份難以言喻的信任與革命情誼。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=njxatFON6Zg",
+  "youtubeSource": "ONE PIECE官方YouTube頻道（日本）"
  },
  "182920": {
   "title": "卡片戰鬥!!先導者 Divinez 第三季「DELUXE篇」",
@@ -7392,7 +7474,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、日常",
   "desc": "改編自人氣特攝漫畫《怪獸8號》的迷你番外篇，聚焦防衛隊成員日比野卡夫卡等人卸下裝備後的日常趣事。沒有巨大怪獸來襲的日子裡，隊員們的插科打諢與生活瑣事，讓熟悉的英雄們展現另一種可愛又爆笑的面貌。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLtdSPZNWT1AvvuyMgXTdq2cHeAO8xRTZH",
+  "youtubeSource": "TOHO animationチャンネル"
  },
  "179838": {
   "title": "美男高校地球防衛部 ETERNAL LOVE！",
@@ -7432,7 +7516,9 @@ const CN_OVERLAY = {
   "genre": "動作、冒險、喜劇、奇幻、機甲",
   "desc": "《魔神英雄傳》系列全新重啟作。立志成為超人氣「龍管家」網紅的小學四年級生瓦塔爾，某天被捲入一個由漂浮方塊組成的異世界，與夥伴龍神丸並肩作戰，為了打倒最終大魔王，展開一段熱血又充滿童趣的冒險旅程。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtTRBRkxiwSc7gBC-yyOW8pl",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "186207": {
   "title": "來自未來的我",
@@ -7440,7 +7526,9 @@ const CN_OVERLAY = {
   "genre": "日常、劇情",
   "desc": "由動畫導演loundraw執導的兩分鐘短篇，是教育機構Z會與動畫工作室FLAT STUDIO合作推出的形象宣傳作品。故事描繪少女與少年之間淡淡的校園情懷，透過細膩畫面傳遞「未來的自己會想對現在說些什麼」的溫柔訊息。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=yow8PBNcINU",
+  "youtubeSource": "Z會官方YouTube頻道(zkaipr)"
  },
  "176432": {
   "title": "Thunderbolt Fantasy 東離劍遊紀 最終章",
@@ -7465,7 +7553,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、奇幻、日常",
   "desc": "以嬰幼兒為主要客群的寶可夢周邊企劃動畫。故事中皮卡丘來到夢幻的「萌寶可夢島」，在此陸續邂逅哭泣寶可夢、樂天河童等各種可愛寶可夢夥伴，以溫馨療癒的短篇形式，帶領最小的觀眾們一起認識寶可夢的世界。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLrLFZHBIm7Sm5JiH7ltg0K3UfO1qUGy9N",
+  "youtubeSource": "ポケモン Kids TV(寶可夢官方Kids TV頻道)"
  },
  "192928": {
   "title": "NOMO之國",
@@ -7473,7 +7563,9 @@ const CN_OVERLAY = {
   "genre": "冒險、奇幻、懸疑",
   "desc": "少女空原本喜歡唱歌，卻因某次挫折而害怕在人前開口，漸漸忘記了歌聲與笑容。某日，她與弟弟大地在一座名為鏡池的水塘邊，追逐一隻散發極光色澤的神秘蝴蝶時失足落水，意外墜入名為NOMO之國的奇幻異世界，並結識古靈精怪的少女洛可可，展開一段找回自我的冒險旅程。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=2puErJ6wnmU",
+  "youtubeSource": "Panasonic官方YouTube頻道(Channel Panasonic - Official)"
  },
  "189893": {
   "title": "一桿青空×小鳥之翼 高爾夫女孩特別聯動迷你動畫",
@@ -7481,7 +7573,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、運動",
   "desc": "兩部以高爾夫球為題材的人氣動畫《一桿青空》與《小鳥之翼》首度跨界聯動推出的Q版迷你動畫。雙方角色齊聚球場，以誇張逗趣的短篇形式較量球技，為熱愛高爾夫球題材的觀眾獻上限定的歡樂聯乘企劃。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://youtu.be/Kg-DD21FAFE",
+  "youtubeSource": "TVアニメ「空色ユーティリティ」公式YouTubeチャンネル"
  },
  "187514": {
   "title": "一起滾動吧！玉桂狗",
@@ -7489,7 +7583,9 @@ const CN_OVERLAY = {
   "genre": "日常",
   "desc": "三麗鷗人氣角色玉桂狗首部定格動畫作品，描繪牠與好友卡布奇諾、奶昔等夥伴在虛構小鎮裡悠閒度過每一天的生活點滴。全片以黏土偶般溫暖手感的定格畫面呈現，透過細膩的分鏡與配樂，傳遞玉桂狗與夥伴們互相陪伴、療癒人心的可愛日常。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLFNUyl__hoIhMu0_g-U-rGlEoE3E7RjPE",
+  "youtubeSource": "サンリオキャラクターズ【公式】(Sanrio官方頻道)"
  },
  "187507": {
   "title": "Duel Masters LOST ～月下的死神～",
@@ -7497,7 +7593,9 @@ const CN_OVERLAY = {
   "genre": "冒險、奇幻",
   "desc": "集換式卡牌動畫《Duel Masters LOST》系列最新篇章，承接前作的劇情發展。主角與夥伴們的鬥牌之路持續深化，伴隨神秘死神般存在的登場，故事氛圍也更添詭譎與緊張感，牌桌上的每一回合都暗藏殺機。",
   "year": 2025,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLARgeoQ6z_IT77801b-A_iY0aIfjsWPMq",
+  "youtubeSource": "デュエチューブ-DM公式-(Duel Masters官方頻道)"
  },
  "185901": {
   "title": "TRUST",
@@ -7530,7 +7628,9 @@ const CN_OVERLAY = {
   "desc": "隨《Fate/Grand Order 搞不懂的藤丸立香》第二季藍光光碟收錄推出的番外短篇。以一貫誇張無厘頭的喜劇風格，描繪藤丸立香與夥伴從者們之間爆笑荒誕的日常小插曲。",
   "year": 2025,
   "season": "WINTER",
-  "series": "fgo-fujimaru-ritsuka"
+  "series": "fgo-fujimaru-ritsuka",
+  "youtube": "https://www.youtube.com/playlist?list=PL89JSDM5_1niJ9ByoOksiux3oQf13DpYD",
+  "youtubeSource": "《Fate/Grand Order》繁中版官方頻道"
  },
  "185539": {
   "title": "阿爾卑斯山的老人 海蒂的爺爺",
@@ -7671,7 +7771,10 @@ const CN_OVERLAY = {
   "desc": "高中女生桃子堅信幽靈存在,同校男生阿星則篤信外星人,兩人為了證明自己而互相試膽,卻意外捲入真正的靈異事件與外星人綁架案。桃子因此覺醒巫女血脈的超能力,阿星則被植入詭異裝置,兩人從此並肩對抗接踵而來的都市傳說怪物,在打鬧中逐漸產生微妙情愫。",
   "year": 2024,
   "season": "FALL",
-  "series": "dandadan"
+  "series": "dandadan",
+  "youtube": "https://www.youtube.com/watch?v=niulPnW4BBs",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81736884"
  },
  "163134": {
   "title": "Re：從零開始的異世界生活 第三季",
@@ -7680,7 +7783,10 @@ const CN_OVERLAY = {
   "desc": "少年菜月昴意外穿越到異世界,發現自己擁有死而復生、記憶不滅的「死歸」能力。第三季裡,他與精靈少女艾米莉雅深入聖域,直面她不願面對的過去與試煉,昴必須在無數次的死亡輪迴中摸索真相,同時守護重要的夥伴,對抗步步進逼的強大威脅。",
   "year": 2024,
   "season": "FALL",
-  "series": "re-zero-main"
+  "series": "re-zero-main",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfoDmI3ul0zC2QHmxgQANaQA",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/80131659"
  },
  "170942": {
   "title": "青春之箱",
@@ -7688,7 +7794,8 @@ const CN_OVERLAY = {
   "genre": "校園、運動、戀愛、青春",
   "desc": "羽球社少年大喜暗戀著就讀同校、擅長籃球的學姊千夏,兩人因家庭緣故意外同住一個屋簷下。面對心儀的對象近在咫尺,大喜一邊在球場上奮力精進球技追逐夢想,一邊笨拙地正視自己悸動的心意,譜出一段青澀又熱血的校園戀愛物語。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/81663323"
  },
  "163146": {
   "title": "藍色監獄 VS. U-20 日本代表隊",
@@ -7696,7 +7803,10 @@ const CN_OVERLAY = {
   "genre": "運動、競技、心理、少年",
   "desc": "經歷殘酷選拔賽脫穎而出的潔世英雄等新生代前鋒,組成「藍色監獄」聯隊,迎戰由日本足壇菁英組成的U-20代表隊。這場攸關未來能否成為國家隊王牌的對決,讓凪誠士郎、潔世英雄等人使出渾身解數,在球場上展開激烈的自我與團隊博弈。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtQNpdH94Rb-HrMlO_dvw1As",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81640753"
  },
  "151514": {
   "title": "地。-關於地球的運動-",
@@ -7704,7 +7814,8 @@ const CN_OVERLAY = {
   "genre": "歷史、科幻、懸疑、劇情",
   "desc": "在虛構的十五世紀歐洲,篤信地動說被視為異端邪說,一旦被發現便難逃火刑。少年拉斐爾原本擁有大好前程,卻因結識神祕學者而一頭栽進禁忌的天文學研究。故事橫跨數個世代,描繪一群甘冒生命危險、只為追尋真理的人們如何將求知的火炬代代相傳。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/81765022"
  },
  "169755": {
   "title": "BLEACH 死神 千年血戰篇-相剋譚-",
@@ -7712,7 +7823,10 @@ const CN_OVERLAY = {
   "genre": "動作、超自然、戰鬥、少年",
   "desc": "死神代理黑崎一護與屍魂界眾角色持續迎戰滅卻師之王率領的入侵大軍。隨著千年血戰進入最為慘烈的階段,各方戰力盡數投入殊死決戰,塵封的過去恩怨與羈絆也隨戰事推進逐一揭露,一護必須直面最強大的敵人,守護他所珍視的世界。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtRzJXqvzjy_NRCBgfzfwBHB",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/80217733"
  },
  "176508": {
   "title": "香格里拉・開拓異境～糞作獵手挑戰神作～ 第二季",
@@ -7721,7 +7835,10 @@ const CN_OVERLAY = {
   "desc": "擅長攻略爛作遊戲的玩家樂奈轉戰神作級VRMMO《香格里拉·開拓異境》,持續挑戰各種高難度王級任務。第二季中,他將深入嶄新的地圖與強敵交手,並結識更多志同道合的玩家夥伴,在虛擬世界裡繼續磨練戰術與操作技巧,朝著全破遊戲的目標邁進。",
   "year": 2024,
   "season": "FALL",
-  "series": "shangri-la-frontier"
+  "series": "shangri-la-frontier",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfriLqlWYt_6FgqLm7LSCcom",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81727242"
  },
  "111314": {
   "title": "漩渦 Uzumaki",
@@ -7729,7 +7846,8 @@ const CN_OVERLAY = {
   "genre": "恐怖、驚悚、超自然",
   "desc": "平靜的黑澤鎮突然被詭異的「螺旋」詛咒籠罩,鎮民接二連三受其影響,行為舉止逐漸異常乃至身體產生駭人的變異。少女雛子與青梅竹馬慎司眼見周遭陷入瘋狂與恐懼,努力想查明詛咒根源,卻發現自己也一步步被捲入這場無法逃脫的螺旋噩夢。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/81776687"
  },
  "170732": {
   "title": "在地下城尋求邂逅是否搞錯了什麼 第五季",
@@ -7738,7 +7856,10 @@ const CN_OVERLAY = {
   "desc": "新手冒險者貝爾·克拉涅爾持續在迷宮都市歐拉麗磨練自我,第五季裡他與海絲緹雅眷族的夥伴們將捲入與豐饒女神眷族之間的紛爭。隨著地下城深處的危機逐漸浮現,貝爾必須在守護重要之人與追尋冒險者夢想之間,做出更加艱難的抉擇。",
   "year": 2024,
   "season": "FALL",
-  "series": "danmachi"
+  "series": "danmachi",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfqCUWkqj5n5Zi1f4TeXNy3Z",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/80185873"
  },
  "154473": {
   "title": "平凡職業造就世界最強 第三季",
@@ -7747,7 +7868,10 @@ const CN_OVERLAY = {
   "desc": "原本平凡無奇的高中生南雲一因班級遭集體召喚至異世界,又被同學陷害墜入絕境深淵,意外覺醒了煉金術而蛻變為最強戰力。第三季裡,他與夥伴們的旅程邁向新戰場,直面更加凶險的迷宮試煉與潛藏的陰謀,持續在異世界中尋找生存與歸途的答案。",
   "year": 2024,
   "season": "FALL",
-  "series": "arifureta"
+  "series": "arifureta",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfrPd4PvQ34emKzl7lx05kdW",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81144534"
  },
  "141182": {
   "title": "精靈幻想記 2",
@@ -7755,7 +7879,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、異世界、戀愛、冒險",
   "desc": "擁有前世記憶的少年里克(春人)轉生於劍與魔法交織的異世界,自幼歷經身世坎坷與各種紛爭。第二季裡,他一邊在貴族學院精進精靈術與劍術,一邊逐步捲入王國內部的權力角力與復仇糾葛,同時與昔日重要之人的羈絆也再度牽動他的命運。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfq8iiRpJX-kVF2bqxOxHEVf",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "175019": {
   "title": "嘆氣的亡靈想隱退",
@@ -7764,7 +7890,10 @@ const CN_OVERLAY = {
   "desc": "曾經歷九死一生的傳說級冒險者克萊姆,厭倦了刀口舔血的生活,一心只想早日隱退享受平靜。然而立志成為頂尖冒險者的少女緹雅卻死纏著要拜他為師,兩人陰錯陽差組成隊伍,一邊探索危機四伏的迷宮遺跡,一邊揭開克萊姆過去不願提起的祕密。",
   "year": 2024,
   "season": "FALL",
-  "series": "nageki-bourei"
+  "series": "nageki-bourei",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfqXOkjgbeIXmIqN-pYnFgSo",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81946855"
  },
  "173693": {
   "title": "孤單一人的異世界攻略",
@@ -7772,7 +7901,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、異世界、戰鬥、單人",
   "desc": "個性孤僻的少年遙人,某天被召喚到異世界卻拒絕與任何人組隊,選擇獨自一人默默鍛鍊、探索迷宮。憑藉著只有他能看見的隱藏技能樹,遙人逐漸成長為深不可測的強者,卻也因深藏不露的實力,不知不覺被捲入了各種超乎想像的麻煩事件之中。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfoHsKpUtrqeWFkLENeaQR0B",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81955440"
  },
  "178533": {
   "title": "亂馬 1/2 新作動畫",
@@ -7781,7 +7913,8 @@ const CN_OVERLAY = {
   "desc": "武術世家出身的早乙女亂馬,因訓練意外落入詛咒之泉,從此一遇冷水就會變成女兒身,熱水才能恢復原狀。回國後,亂馬被父親擅自許配給青梅竹馬天道茜,兩人個性南轅北轍卻註定同住一個屋簷下,從此展開一連串爆笑又充滿武打場面的青春鬧劇。",
   "year": 2024,
   "season": "FALL",
-  "series": "ranma-2024"
+  "series": "ranma-2024",
+  "netflix": "https://www.netflix.com/tw/title/81171925"
  },
  "163135": {
   "title": "魔王 2099",
@@ -7805,7 +7938,8 @@ const CN_OVERLAY = {
   "genre": "動作、冒險、奇幻、喜劇",
   "desc": "孫悟空與夥伴們無端遭到神祕力量詛咒,全都變成了孩童般的迷你身形,力量也大幅衰退。為了找出詛咒源頭並恢復原貌,一行人踏上前往陌生「魔界」的冒險旅程,途中結識來自魔界的新夥伴,共同對抗潛藏在異世界深處的未知威脅。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/81943491"
  },
  "172190": {
   "title": "女僕冥土小姐",
@@ -7813,7 +7947,10 @@ const CN_OVERLAY = {
   "genre": "戀愛、喜劇、奇幻、校園",
   "desc": "平凡高中生某天遇上自稱來自冥界、負責引導亡魂的神祕少女「冥」,兩人陰錯陽差展開同居生活。個性我行我素的冥為原本失去生活重心的少年帶來意想不到的活力與溫暖,一段跨越生死界線、青澀又溫馨的戀愛物語就此展開。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtSoAAueL0Qp3DJr4gkiBoNt",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81945102"
  },
  "182469": {
   "title": "航海王 給你的信",
@@ -7829,7 +7966,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、異世界、戰鬥、冒險",
   "desc": "擁有「話術士」這個被視為毫無戰力的輔助職業的青年凱,實則深諳讀心與話術操縱之道。他利用過人的心理戰術與談判手腕,暗中操控著世界最強戰鬥公會的行動,在明爭暗鬥的異世界冒險者社會中,以看不見刀劍的方式步步為營、掌握全局。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfqCL-EnTOA9t2pFE_ExY0G3",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81955421"
  },
  "168139": {
   "title": "成為名留歷史的壞女人吧 愈是想成為反派千金，王子的溺愛愈是熱烈！",
@@ -7853,7 +7993,9 @@ const CN_OVERLAY = {
   "genre": "戀愛、喜劇、職場、日常",
   "desc": "三十歲上下的記者真晝與翻譯空因公司要求假扮情侶而相識,兩人一拍即合,索性決定以結婚為前提展開為期一年的同居生活。原本只是各取所需的契約關係,卻在朝夕相處與磨合中逐漸滋生出真摯情感,兩人也在忐忑與甜蜜交織中,一步步邁向真正的婚姻。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfp_bDKTPlU8kHMf0-W_W450",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "178434": {
   "title": "轉生貴族憑鑑定技能扭轉人生 第二季",
@@ -7862,7 +8004,9 @@ const CN_OVERLAY = {
   "desc": "轉生成為沒落貴族之子的雷德,意外獲得能夠看穿萬物弱點與能力數值的「鑑定」技能。第二季裡,他持續運用這項看似不起眼卻威力驚人的能力,在王國的權謀鬥爭與強敵環伺的戰場上步步為營,逐漸從無人看好的貴族少爺蛻變為舉足輕重的存在。",
   "year": 2024,
   "season": "FALL",
-  "series": "tensei-kizoku-kantei"
+  "series": "tensei-kizoku-kantei",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtQN8ozD6yLrglH7f_m1GcAy",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "174043": {
   "title": "被逐出隊伍的治癒師，其實是最強",
@@ -7870,7 +8014,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、異世界、戰鬥、復仇",
   "desc": "身懷絕世治癒之力的青年亞德,卻因隊友的嫉妒與誤解慘遭逐出冒險者隊伍,還被誣陷背負惡名。心灰意冷之餘,他決定隱藏真實身分重新出發,以嶄新面貌闖蕩冒險者世界。隨著昔日隊友與強敵接連現身,亞德深藏不露的驚人實力也逐漸真相大白。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtR1hzRqvuopPbZ28rqEXXbQ",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81988364"
  },
  "167141": {
   "title": "刀劍神域外傳 Gun Gale Online II",
@@ -7878,7 +8025,8 @@ const CN_OVERLAY = {
   "genre": "科幻、動作、遊戲、戰鬥",
   "desc": "現實中對自己身高感到自卑的少女蓮,在VR槍戰遊戲《Gun Gale Online》中化身嬌小敏捷的粉紅色勇士LLENN,憑藉精湛槍法闖出名號。第二季裡,她將與夥伴繼續征戰各式生死存亡的大逃殺賽事,面對更加詭譎多變的對手與規則,持續在虛擬戰場上證明自己的價值。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/80990612"
  },
  "136880": {
   "title": "BEASTARS 最終季",
@@ -7887,7 +8035,8 @@ const CN_OVERLAY = {
   "desc": "狼與兔曾經跨越物種藩籬相戀的青春校園故事邁入最終章。長大成人的狼族青年雷格西,不僅要面對肉食與草食動物之間根深柢固的社會矛盾,還必須直面自己內心深處的獸性與過去的傷痛。當昔日的動亂再次浮上檯面,雷格西將被迫在保護所愛之人與正視自我之間做出抉擇。",
   "year": 2024,
   "season": "FALL",
-  "series": "beastars-final"
+  "series": "beastars-final",
+  "netflix": "https://www.netflix.com/tw/title/81054847"
  },
  "164299": {
   "title": "重來的令嬢，攻略龍帝陛下中",
@@ -7911,7 +8060,8 @@ const CN_OVERLAY = {
   "genre": "動作、奇幻、超自然、戰鬥",
   "desc": "擁有撒旦血脈的少年奧村燐,自幼展現駭人的惡魔力量,卻立志成為驅魔師以自己的方式對抗與生俱來的宿命。在「雪之盡頭篇」中,燐與夥伴們深入冰封之地執行任務,直面隱藏在皚皚白雪之下的全新威脅,同時也更加逼近自己身世與撒旦真正意圖的核心真相。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/70304252"
  },
  "179919": {
   "title": "悲喜漁生",
@@ -7927,7 +8077,8 @@ const CN_OVERLAY = {
   "genre": "動作、奇幻、冒險",
   "desc": "電影版集結第一季精華並搶先呈現第二季開頭劇情。曾被譏為「人類最弱」的獵人成振宇，在死亡地下城瀕死之際獲得神秘「升級」能力，從此踏上從谷底反擊、逐步邁向最強獵人的漫長旅途，全台威秀獨家上映。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/81749761"
  },
  "171038": {
   "title": "星降王國的妮娜",
@@ -7943,7 +8094,10 @@ const CN_OVERLAY = {
   "genre": "喜劇、戀愛、青春",
   "desc": "大學生常盤受邀參加三對三聯誼，滿懷期待赴約，眼前卻只有三位氣質出眾的型男。原來對方是在男裝酒吧打工的女大生蘇芳、藤、琥珀，男女立場錯置的尷尬互動，意外擦出爆笑又心動的火花。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PL8qLxmibSZENnamlR7R6WBdXkBdKgRsxV",
+  "youtubeSource": "NBCUniversal Anime/Music",
+  "netflix": "https://www.netflix.com/tw/title/81942652"
  },
  "154673": {
   "title": "機械臂",
@@ -7959,7 +8113,10 @@ const CN_OVERLAY = {
   "genre": "溫馨、悠閒、親情、感人",
   "desc": "十年前痛失愛妻的新島圭介，某天面前竟出現一名自稱是亡妻的小學生，言行舉止與記憶都與妻子如出一轍。從此他與擁有小學生外貌的「妻子」重新展開共同生活，在荒謬設定下譜出令人鼻酸的純愛物語。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtRNfEZvqv7sLj8Zlc0GGBqr",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81781792"
  },
  "171637": {
   "title": "神劍闖江湖 ―明治劍客浪漫譚― 京都動亂",
@@ -7967,7 +8124,8 @@ const CN_OVERLAY = {
   "genre": "動作、冒險、歷史",
   "desc": "明治初期，內務大臣揭露昔日政府刺客志志雄真實正於京都密謀叛亂。與齋藤一交手後驚覺內心殺意未曾消散的劍心，決定再度踏上流浪之路，隻身前往京都阻止這場足以撼動新政府的巨大陰謀。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/81705252"
  },
  "172355": {
   "title": "鴨乃橋論的禁忌推理 第二季",
@@ -7976,7 +8134,10 @@ const CN_OVERLAY = {
   "desc": "破案率百分百、逮捕率卻是零的天才偵探鴨乃橋論，與呆萌刑警一色都都丸再度聯手。第二季中兩人捲入代號「M家族」的神祕犯罪組織風波，必須在如謎樣幕後黑手佈下的重重陰謀中找出真相。",
   "year": 2024,
   "season": "FALL",
-  "series": "kamonohashi-ron"
+  "series": "kamonohashi-ron",
+  "youtube": "https://www.youtube.com/playlist?list=PLxSscENEp7JiAloVDlPwhb4Cu2UOjyZwp",
+  "youtubeSource": "Ani-One Asia",
+  "netflix": "https://www.netflix.com/tw/title/81726765"
  },
  "168500": {
   "title": "魔王陛下，RETRY！R",
@@ -8001,7 +8162,9 @@ const CN_OVERLAY = {
   "genre": "校園、喜劇、青春、溫馨、靈異神怪",
   "desc": "膽小又愛哭的新科教師安倍晴明，滿懷憧憬走馬上任，才發現自己任教的百鬼學園竟是一所妖怪學校。面對性格迥異的妖怪學生與同事，膽怯的人類老師必須鼓起勇氣，展開一段又驚又笑的校園日常。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtRnwW-V7djYqoMoyQV4ZFYC",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "171642": {
   "title": "燃油車鬥魂 第二季",
@@ -8010,7 +8173,10 @@ const CN_OVERLAY = {
   "desc": "駕駛86挑戰街頭賽事MFG的新星澤渡光輝，以及來自歐洲的強敵夏向、貝肯鮑爾等新世代車手相繼登場，為賽事掀起全新風暴。第二季中選手們在濃霧與暴雨中激烈纏鬥，賽道上的較量比第一季更加白熱化。",
   "year": 2024,
   "season": "FALL",
-  "series": "mf-ghost"
+  "series": "mf-ghost",
+  "youtube": "https://www.youtube.com/playlist?list=PLxSscENEp7Ji9pXffd9q_Ha3gcl4XH4tB",
+  "youtubeSource": "Ani-One Asia",
+  "netflix": "https://www.netflix.com/tw/title/81715444"
  },
  "176292": {
   "title": "七大罪 啟示錄四騎士 第二季",
@@ -8019,7 +8185,8 @@ const CN_OVERLAY = {
   "desc": "歷經重重考驗抵達里昂尼斯王國的帕西瓦爾一行人，從梅利奧達斯口中得知世界各地正發生的慘況，以及亞瑟王真正的目的，眾人就此下定決心，準備聯手迎戰足以毀滅世界的強大威脅。",
   "year": 2024,
   "season": "FALL",
-  "series": "nanatsu-taizai-yonkishi"
+  "series": "nanatsu-taizai-yonkishi",
+  "netflix": "https://www.netflix.com/tw/title/81562396"
  },
  "166611": {
   "title": "夏目友人帳 柒",
@@ -8027,7 +8194,8 @@ const CN_OVERLAY = {
   "genre": "溫馨、奇幻、靈異神怪",
   "desc": "擁有陰陽眼、繼承「友人帳」的夏目貴志，持續在人與妖怪交錯的日常裡，一頁頁歸還被封印在帳冊中的妖怪姓名。第七季延續一貫溫柔筆觸，描繪少年與妖怪們之間淡然卻深刻的羈絆與成長。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/81032481"
  },
  "169258": {
   "title": "青之壬生浪",
@@ -8043,7 +8211,8 @@ const CN_OVERLAY = {
   "genre": "勵志、職場",
   "desc": "狡猾機靈的阿陽與內向木訥的電腦高手阿學，個性南轅北轍卻是多年摯友。面對求職屢屢碰壁的困境，兩人決定攜手創業，喊出要賺進「一兆美元」的狂妄目標，展開一段膽識與才智交織的逐夢旅程。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/81944802"
  },
  "170893": {
   "title": "放學後少年花子君 2",
@@ -8052,7 +8221,8 @@ const CN_OVERLAY = {
   "desc": "作為《地縛少年花子君》外傳短篇的續作，本作聚焦下課鐘響後的海鷗學園。花子君與眾多勿怪、驅魔世家後裔以及神祕廣播社成員齊聚一堂，用短小精悍的篇幅呈現校園中不為人知又爆笑連連的日常片段。",
   "year": 2024,
   "season": "FALL",
-  "series": "houkago-shounen-hanako"
+  "series": "houkago-shounen-hanako",
+  "netflix": "https://www.netflix.com/tw/title/81233565"
  },
  "183423": {
   "title": "ONE PIECE 魚人島篇 特別編輯版",
@@ -8076,7 +8246,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、魔法、校園、溫馨",
   "desc": "一心憧憬成為魔法師的少女可露米，與出身魔法世家的千金柚子，雙雙在最高學府的入學考試中落榜。原以為夢想就此破滅，兩人卻意外發現看似平凡的普通班導師身懷驚人祕密，青春校園奇幻物語就此展開。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtTubpTVY42MFaLH1wiFAcHO",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "155502": {
   "title": "Love Live! Superstar!! 第三季",
@@ -8085,7 +8257,9 @@ const CN_OVERLAY = {
   "desc": "校園偶像團體Liella!邁入成軍以來的第三個年頭，從五人出發、九人齊聚到如今十一人共同閃耀。悄悄歸隊的香音、突然成立的新偶像社團，以及公開宣戰的強勁對手接連登場，舞台的挑戰只增不減。",
   "year": 2024,
   "season": "FALL",
-  "series": "love-live-superstar"
+  "series": "love-live-superstar",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfqk9i6EGU35UNLo3bslAZGp",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "150930": {
   "title": "村井之戀",
@@ -8101,7 +8275,9 @@ const CN_OVERLAY = {
   "genre": "競技、黑暗、血腥暴力",
   "desc": "白天是普通高中生、夜晚化身地下雀莊常客的少年圭，憑藉冷靜的思考與精湛牌技，在道上被稱為「冰之K」。在金錢與人命都可能一夕蒸發的地下賭場中，年僅十五歲的他必須在生死交關的牌局裡殺出血路。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLoGVqODys23AdjvTUF0ekJB-H5pafLYgI",
+  "youtubeSource": "回歸線娛樂"
  },
  "171400": {
   "title": "噗妮露是可愛史萊姆",
@@ -8110,7 +8286,10 @@ const CN_OVERLAY = {
   "desc": "國中生小太郎在小學時親手創造出的史萊姆噗妮露，七年後竟出落成絕世美少女。面對從小玩伴搖身一變的可愛存在，小太郎每天心跳不已，兩人是否還能維持單純的「朋友」關係，成了青澀日常裡最大的難題。",
   "year": 2024,
   "season": "FALL",
-  "series": "puniru-slime"
+  "series": "puniru-slime",
+  "youtube": "https://www.youtube.com/playlist?list=PLxSscENEp7JhstXla-FpyHRj3shzQqLio",
+  "youtubeSource": "Ani-One Asia",
+  "netflix": "https://www.netflix.com/tw/title/81975106"
  },
  "168537": {
   "title": "尋神的旅途",
@@ -8134,7 +8313,8 @@ const CN_OVERLAY = {
   "genre": "科幻、機甲、戰爭",
   "desc": "一年戰爭歐洲戰線上，吉翁軍王牌駕駛員率領紅狼中隊死守陣地，卻迎來聯邦軍最新銳兵器「鋼彈」的猛烈反擊。以寫實筆觸描繪戰場殘酷面的外傳作品，透過全新視角呈現宇宙世紀戰爭中小人物的掙扎與犧牲。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/81276500"
  },
  "185613": {
   "title": "魔戒：洛汗人之戰",
@@ -8142,7 +8322,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、冒險、戰爭",
   "desc": "故事發生於《魔戒》正傳兩百年前，洛汗第九代國王聖盔．鎚手因拒絕政治聯姻，與登蘭德人之王沃夫結下血海深仇。當戰火席捲洛汗國，國王之女赫拉必須在絕境中挺身而出，捍衛家園與人民的命運。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "netflix": "https://www.netflix.com/tw/title/81783938"
  },
  "176470": {
   "title": "如果30歲還是處男，似乎就能成為魔法師 特別編集版",
@@ -8301,7 +8482,9 @@ const CN_OVERLAY = {
   "genre": "日常、奇幻、兒童",
   "desc": "藏身於香蕉皮中的療癒貓咪「香蕉喵」們，這次踏上環遊世界的奇妙旅程。牠們以定格動畫呈現的可愛姿態，在世界各地遇見形形色色的新朋友，探索充滿異國風情的文化與美食，展開一段又一段溫馨小冒險。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLxSscENEp7Jjvn-QSq2pOOwltUAUJx7pT",
+  "youtubeSource": "Ani-One Asia"
  },
  "178782": {
   "title": "劇場總集篇 幻日夜羽 -鏡中暉光-",
@@ -8334,7 +8517,9 @@ const CN_OVERLAY = {
   "desc": "描寫獨居漫畫家與愛貓「小春」之間充滿吐槽的深夜日常，貓咪總愛在主人埋首工作時搗亂撒嬌、爭寵搶關注。第三季延續一人一貓拌嘴卻又誰都離不開誰的療癒生活點滴，短短篇幅裡藏著滿滿的溫馨笑料。",
   "year": 2024,
   "season": "FALL",
-  "series": "yoru-neko-issho"
+  "series": "yoru-neko-issho",
+  "youtube": "https://www.youtube.com/channel/UCgizvo71txkDWEjcGGc3VPQ",
+  "youtubeSource": "【公式】『夜は猫といっしょ』チャンネル"
  },
  "138522": {
   "title": "Thunderbolt Fantasy 東離劍遊紀 4",
@@ -8343,7 +8528,9 @@ const CN_OVERLAY = {
   "desc": "由台灣布袋戲團隊與日本動畫班底聯手打造的偶動漫系列最新章節，劍客殤不患等人再度捲入江湖恩怨與陰謀漩渦。故事延續系列一貫細膩的操偶演出與武俠美學，在刀光劍影間演繹屬於東方奇幻武俠世界的愛恨情仇。",
   "year": 2024,
   "season": "FALL",
-  "series": "touriken-yuuki"
+  "series": "touriken-yuuki",
+  "youtube": "https://www.youtube.com/watch?v=yonm1eUdyFo",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "173884": {
   "title": "PUI PUI 天竺鼠車車 電影版 MOLMAX",
@@ -8352,7 +8539,8 @@ const CN_OVERLAY = {
   "desc": "天竺鼠造型的療癒小車「PUI PUI」們這次捲入一場盛大的改裝競速大賽「MOLMAX」，各個角色紛紛使出渾身解數全力衝刺。以逗趣定格動畫呈現的賽事過程，交織出一段充滿友情、競爭與速度感的歡樂冒險。",
   "year": 2024,
   "season": "FALL",
-  "series": "molcar"
+  "series": "molcar",
+  "netflix": "https://www.netflix.com/tw/title/82080270"
  },
  "182241": {
   "title": "BanG Dream! It's MyGO!!!!!：歌唱、能成為我們的歌 &amp; FILM LIVE",
@@ -8402,7 +8590,9 @@ const CN_OVERLAY = {
   "desc": "少年凱伊因緣際會加入喬歐、迪雅、皮皮的求生小隊，一次次被拋入洪水、極地、荒島等絕境之中。四人運用天文地理與物理化學的實用知識絕處逢生，在驚險刺激的冒險裡，把硬派科學知識轉化為淺顯易懂的生存智慧，寓教於樂。",
   "year": 2024,
   "season": "FALL",
-  "series": "kagaku-bouken-survival"
+  "series": "kagaku-bouken-survival",
+  "youtube": "https://www.youtube.com/playlist?list=PLa4eTzw1OxmZ2clmgoobuqQ5ZUKJzAwir",
+  "youtubeSource": "「科学漫画サバイバル」シリーズ官方頻道"
  },
  "183383": {
   "title": "LoveLive! Superstar!! 第三季 特別篇",
@@ -8418,7 +8608,9 @@ const CN_OVERLAY = {
   "genre": "冒險、喜劇、奇幻",
   "desc": "酷洛米這回意外捲入錯綜複雜的多元宇宙，途中結識了新夥伴妮可。在充滿平行時空與離奇規則的異想世界裡，她必須運用機智與勇氣一一突破重重難關，設法逃離錯亂的宇宙迴圈，找到回家的路，過程爆笑又充滿溫馨的友情羈絆。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLjv78rVJV36N6qIr8amgk5nSjKeien0q7",
+  "youtubeSource": "KUROMI /クロミ【Sanrio Official】"
  },
  "199479": {
   "title": "加油！Chrome",
@@ -8426,7 +8618,9 @@ const CN_OVERLAY = {
   "genre": "生活、喜劇、廣告動畫",
   "desc": "由Google日本製作的迷你宣傳動畫，主角是Chrome瀏覽器的恐龍吉祥物。取材自官方舉辦的粉絲繪圖募集活動得獎作品，以輕鬆幽默的短篇故事，向觀眾介紹瀏覽器的各種實用功能與小技巧，寓教於樂又充滿童趣。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLLkq-mu9c_kat3qQdX5Wn_sakqb9NMKTj",
+  "youtubeSource": "Google Japan"
  },
  "175138": {
   "title": "劇場版 忍者亂太郎 毒竹忍者隊最強之軍師",
@@ -8442,7 +8636,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、美食、奇幻",
   "desc": "改編自《歡迎來到日本，妖精小姐。》的迷你外傳，聚焦精靈瑪莉貝爾與真弘兩人日常的餐桌互動。透過短小精悍的單元故事，呈現異世界精靈初次接觸日本家常料理時鬧出的種種笑料，以輕鬆詼諧的步調傳遞跨文化交流的溫馨滋味。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/watch?v=09-RvkeAZCc",
+  "youtubeSource": "東映ビデオ(Toei Video)"
  },
  "184099": {
   "title": "Agent Blue",
@@ -8450,7 +8646,9 @@ const CN_OVERLAY = {
   "genre": "動作、恐怖、定格動畫、無對白",
   "desc": "全程無對白的定格動畫短片，講述神秘特工「藍」執行一連串充滿槍戰與暴力的危險任務。畫面以偶動畫特有的粗糲質感呈現緊張壓迫的氛圍，透過肢體動作與場景調度推進劇情，血腥直接的風格為短片增添強烈的黑色驚悚色彩。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/watch?v=nzQ1AMMdQTE",
+  "youtubeSource": "導演本人頻道 takena"
  },
  "177603": {
   "title": "樂天胖達！",
@@ -8458,7 +8656,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、生活、兒童",
   "desc": "為慶祝品牌十一週年推出的電視動畫，主角胖達熱愛購物，卻總在途中捲入意想不到的荒謬狀況。與好友小胖達、機器人波馳丸和貓咪麥吉一同展開日常小冒險，即使遇上麻煩，只要有夥伴相伴，一切困境都能笑著克服。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLqTy76Pu9VX23-Nfai8GhXutBvKx95TPq",
+  "youtubeSource": "Rakuten Content Central【ANIME】"
  },
  "185541": {
   "title": "阿薩里爾未來的民間故事 第二季",
@@ -8484,7 +8684,9 @@ const CN_OVERLAY = {
   "desc": "改編自人氣電子寵物玩具的全CG動畫第二季，少女由加與軟萌史萊姆造型的噗尼露們共同生活。艾露奈、朋露奈等性格各異的小夥伴為她的日常增添無數歡笑與意外驚喜，用溫馨逗趣的短篇故事描繪女孩與奇幻寵物間的深厚情誼。",
   "year": 2024,
   "season": "FALL",
-  "series": "punirunes"
+  "series": "punirunes",
+  "youtube": "https://www.youtube.com/playlist?list=PLhWipIfRhqz1PwMhTr2k3vgKMoM5hNBIt",
+  "youtubeSource": "タカラトミー(Takara Tomy)官方頻道"
  },
  "189834": {
   "title": "直江同學想讓她瘦下來。",
@@ -8502,7 +8704,9 @@ const CN_OVERLAY = {
   "desc": "以澀谷街頭為舞台的療癒系動物短篇動畫續作，主角是活潑親人的小狗Hachi。牠與貓咪奈奈、黑丸等形形色色的動物夥伴穿梭於城市巷弄之間，用純真視角捕捉都市生活中的溫馨瞬間，是老少咸宜的三分鐘輕鬆小品。",
   "year": 2024,
   "season": "FALL",
-  "series": "shibuya-hachi"
+  "series": "shibuya-hachi",
+  "youtube": "https://www.youtube.com/playlist?list=PLQyvkHBZA_xCcKQBmvhMen0dHLowRCN0n",
+  "youtubeSource": "KING AMUSEMENT CREATIVE(KAC)官方頻道"
  },
  "184998": {
   "title": "圓圓的女友與殘念的男友 第2期",
@@ -8519,7 +8723,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、生活、動物、Q版",
   "desc": "一群圓滾滾的Q版動物角色齊聚一堂的無厘頭短篇喜劇，以誇張逗趣的肢體動作與荒謬情境展開一集又一集的獨立小故事。輕快活潑的節奏搭配討喜的胖嘟嘟造型，帶來純粹放鬆解壓的療癒觀看體驗。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLRTtrAGQNdldkgvjty7size2fv-U4qJd9",
+  "youtubeSource": "【公式】ぽちゃーず"
  },
  "185793": {
   "title": "YouTuNya 聖誕特別篇",
@@ -8544,7 +8750,9 @@ const CN_OVERLAY = {
   "desc": "虛擬世界中誕生的擬人熊角色Kumarba率領夥伴貓倫、巴格林等展開充滿動作場面的爆笑冒險續篇。全CG製作的鮮豔畫風搭配誇張逗趣的打鬥橋段，用簡短的單元劇形式呈現這群虛擬角色在異想世界裡橫衝直撞的日常。",
   "year": 2024,
   "season": "FALL",
-  "series": "kumarba"
+  "series": "kumarba",
+  "youtube": "https://www.youtube.com/playlist?list=PLOqdHQnAd3sEUSuRg7l4SIfAo3G3Mmbgx",
+  "youtubeSource": "クマーバチャンネル(原作YouTube頻道)"
  },
  "204537": {
   "title": "少女革命計畫",
@@ -8552,7 +8760,9 @@ const CN_OVERLAY = {
   "genre": "懸疑、奇幻、超自然、音樂",
   "desc": "世界因不明事件一分為二，少女們的存在也在渾然不覺間被拆解成兩半。為了尋回真正的自我，她們穿梭於各個異變的世界之中，追查與坊間流傳都市傳說相關的神秘現象，一場屬於少女們的靜默革命就此展開。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/watch?v=uHZzsTmgXug",
+  "youtubeSource": "少女革命計画官方頻道(@girls_rev_pj)"
  },
  "207031": {
   "title": "再見片尾曲（短篇動畫）",
@@ -8560,7 +8770,9 @@ const CN_OVERLAY = {
   "genre": "音樂、心理、生活",
   "desc": "為紀念音樂人Eve與動畫師kawa合作專輯《UnderBlue》發行而製作的紀念短片，全片配合同名歌曲〈再見片尾曲〉展開，無對白純以畫面與旋律訴說一段淡淡的離別心緒，短短一分鐘濃縮出細膩動人的情感餘韻。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/watch?v=VOChndxKi6U",
+  "youtubeSource": "Eve(音樂人本人官方頻道)"
  },
  "202422": {
   "title": "怪物彈珠 艾爾 墮天的覺醒",
@@ -8568,7 +8780,9 @@ const CN_OVERLAY = {
   "genre": "動作、奇幻、遊戲改編",
   "desc": "改編自人氣手遊《怪物彈珠》的原創動畫篇章，聚焦墮落天使角色艾爾覺醒的關鍵時刻。故事描繪她在善惡交織的命運中掙扎，透過華麗的戰鬥場面與濃烈的宿命氛圍，呈現遊戲世界觀中一段扣人心弦的墮天序曲。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/watch?v=qpIumuc_9ZU",
+  "youtubeSource": "【モンスト】ストライクワールド公式"
  },
  "185538": {
   "title": "熱鬥小馬：隨處都在",
@@ -8576,7 +8790,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、運動、賽馬",
   "desc": "經典賽馬漫畫《熱鬥小馬》衍生的迷你惡搞短篇，由同一團隊操刀改編。以誇張詼諧的手法重新演繹賽馬場上的爆笑日常，讓經典角色化身Q版造型在各種意想不到的場合亂入，為老粉絲帶來滿滿懷舊笑點與新鮮驚喜。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLaWGw0t9iqLub8rOUdJBUbuhC1BkQkzav",
+  "youtubeSource": "【公式】スキマノアニメ Produced by au"
  },
  "193295": {
   "title": "樂天胖達！(ONA)",
@@ -8584,7 +8800,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、生活、兒童",
   "desc": "電視動畫版《樂天胖達！》的線上限定加映篇章，延續胖達與夥伴們的日常小冒險。喜愛購物卻總是狀況百出的胖達，這次在網路限定的番外故事裡，繼續與小胖達、波馳丸、麥吉一起經歷令人會心一笑的趣味插曲。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/watch?v=YI0h7kzGYyg",
+  "youtubeSource": "Rakuten Content Central【ANIME】"
  },
  "183473": {
   "title": "玩偶物語2",
@@ -8601,7 +8819,9 @@ const CN_OVERLAY = {
   "desc": "銜接電視動畫正篇與第二季之間的網路限定篇章，收錄第二十五、二十六話特別內容。故事延續角色們溫馨逗趣的日常步調，以簡短精緻的單元故事，陪伴觀眾度過歡笑滿滿的成長時光，是老少咸宜的療癒小品。",
   "year": 2024,
   "season": "FALL",
-  "series": "jochum"
+  "series": "jochum",
+  "youtube": "https://www.youtube.com/playlist?list=PLdGg-Ic_x1YQwVYEAURiAEkR3S62xionr",
+  "youtubeSource": "JOCHUM・ジェオチャム【official】"
  },
  "213429": {
   "title": "秘密同伴",
@@ -8617,7 +8837,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、奇幻、超自然",
   "desc": "一間由山貓經營的神秘診所正式開張，專門接待各種奇異生物與離奇病症。以Flash風格繪製的短篇喜劇，用天馬行空的想像力描繪山貓醫生與形形色色古怪病患之間的爆笑互動，帶來充滿獵奇趣味的奇幻日常小品。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/watch?v=bL2ZxRGL9JU",
+  "youtubeSource": "公式『AMAKAWAANIMATION プロジェクト』"
  },
  "196241": {
   "title": "肚子咕嚕咕嚕島",
@@ -8625,7 +8847,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、美食、兒童",
   "desc": "在充滿燒肉料理化身居民的神奇島嶼「咕嚕咕嚕島」上，見習五花肉少年卡爾文懷抱著成為「燒肉王人氣菜單」的夢想。他與一群可愛食物夥伴們一同在宇宙間展開歡樂冒險，用逗趣故事包裝滿滿食慾，激發小朋友對美食的好奇心。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/watch?v=U4ovr1GInxQ",
+  "youtubeSource": "【公式】ぐ〜ぐ〜アイランド"
  },
  "213458": {
   "title": "競馬谷小劇場",
@@ -8633,7 +8857,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、運動、賽馬",
   "desc": "聚焦G1大賽正經較量背後，騎師、賽馬、觀眾與調教師之間充滿反差萌的爆笑眾生相。每個角色都懷著各自的盤算與情感投入這場勝負之爭，用詼諧誇張的短篇形式，呈現賽馬場上鮮為人知卻笑料十足的幕後故事。",
   "year": 2024,
-  "season": "FALL"
+  "season": "FALL",
+  "youtube": "https://www.youtube.com/playlist?list=PLoB47zOj5Db_ke8WXOxoHE4spvT8nd0Mc",
+  "youtubeSource": "DLE Channel"
  },
  "173489": {
   "title": "夜遊生活！",
@@ -8701,7 +8927,10 @@ const CN_OVERLAY = {
   "genre": "戀愛、校園、喜劇",
   "desc": "政近與同校第一才女愛莉，因學生會選舉的合作被誤傳成情侶，索性將計就計演起假情侶。表面高不可攀的愛莉，情急之下總會用俄語脫口說出真心話，偏偏只有政近聽得懂，尷尬與甜蜜交織成日常。兩人一邊維持假面情侶關係，一邊在細微互動中悄悄拉近距離，譜出笑料不斷的校園戀愛喜劇。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtRpwjgFuX7Ye7z4pufE-fTx",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81661821"
  },
  "166531": {
   "title": "我推的孩子 第二季",
@@ -8710,7 +8939,10 @@ const CN_OVERLAY = {
   "desc": "星野愛帶著「B小町」重返舞台的夢想突然殞落，轉生為她孩子的愛久與夢，決心以演藝圈為戰場揭開母親死亡的真相。第二季故事聚焦於舞台劇的排練與愛久初次主演電影的挑戰，光鮮亮麗的演藝世界背後，謊言、嫉妒與野心持續交織，兩人離真相也越來越近。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "oshi-no-ko"
+  "series": "oshi-no-ko",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtSbhgEIZUVRyNXF8TIsj0oh",
+  "youtubeSource": "Ani-One中文官方動畫頻道(Ani-One ULTRA)",
+  "netflix": "https://www.netflix.com/tw/title/81684733"
  },
  "174576": {
   "title": "杖與劍的魔劍譚",
@@ -8719,7 +8951,10 @@ const CN_OVERLAY = {
   "desc": "少年亞尼斯自幼渴望成為劍士，卻天生缺乏魔力，只能靠劍術硬闖需要魔劍才能考核的魔法學校。他與被稱為「怪物公主」的少女艾莉絲相遇，兩人一同拜入導師門下修行。在充滿劍與魔法的世界裡，亞尼斯要用自己的方式證明，沒有魔力也能站上頂點。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "wistoria"
+  "series": "wistoria",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfoFTA__HkWbOw28mxjZm67J",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81900358"
  },
  "171457": {
   "title": "敗北女角太多了！",
@@ -8727,7 +8962,10 @@ const CN_OVERLAY = {
   "genre": "戀愛、校園、喜劇",
   "desc": "溫水和彥在文化祭前夕，接連撞見同班三位「敗北女角」——曾在戀愛中落敗的八奈見、小抄、焦茶——各自失戀後的落寞模樣。原本毫無交集的幾人，因這個共同秘密被迫組成奇妙同盟，圍繞著戀愛、友情與各自不堪的黑歷史，展開一段又酸又甜的青春喜劇。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLuxqoToY7UcjkYeLy2FYbaXPXjun_sRDL",
+  "youtubeSource": "Muse木棉花-HK",
+  "netflix": "https://www.netflix.com/tw/title/81566401"
  },
  "153406": {
   "title": "神之塔 -Tower of God- 第二季",
@@ -8751,7 +8989,10 @@ const CN_OVERLAY = {
   "genre": "異世界、動作、黑暗、復仇",
   "desc": "被召喚到異世界的少年獲得的技能，是人人嫌棄、毫無攻擊力的「狀態異常」，因此遭同伴拋棄、獨自被丟入魔物橫行的地下城。絕境中他發現這項技能其實能無限疊加詛咒效果，一旦覺醒便足以碾壓一切強敵。從谷底翻身的少年，決心向拋棄他的世界展開復仇。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfr6o-8fhJyRJS4dSSjrGxZP",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81910037"
  },
  "163623": {
   "title": "模擬後宮體驗",
@@ -8759,7 +9000,10 @@ const CN_OVERLAY = {
   "genre": "戀愛、喜劇、校園",
   "desc": "高中生慎二意外收留了離家出走的三姊妹，被迫與她們同居一室，過著表面上宛如後宮動畫、實則充滿雞飛狗跳的共同生活。個性迥異的三姊妹輪番上演爭寵與吵鬧戲碼，慎二在照顧她們的過程中，也逐漸體會到「類似戀愛」卻又不完全是戀愛的微妙情感。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtSG6MYgyLzh7RJ-e0Rpte5t",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81913408"
  },
  "152137": {
   "title": "異世界失格",
@@ -8776,7 +9020,10 @@ const CN_OVERLAY = {
   "desc": "鎌倉幕府覆滅之際，年幼的北條時行在忠臣護送下九死一生逃出生天。背負著家族滅亡的仇恨，他卻不擅長戰鬥，唯一的長處是「逃跑」。時行決心運用這項特殊才能東山再起，在南北朝動盪的亂世中周旋求生，走出一條與傳統武將截然不同的復興之路。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "elusive-samurai"
+  "series": "elusive-samurai",
+  "youtube": "https://www.youtube.com/watch?v=nn1lF5--rZg",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81907835"
  },
  "170695": {
   "title": "我要【招架】一切～反誤解的世界最強想成為冒險家～",
@@ -8784,7 +9031,10 @@ const CN_OVERLAY = {
   "genre": "異世界、動作、喜劇、奇幻",
   "desc": "從小被父親以嚴苛方式鍛鍊、練就能招架任何攻擊本領的少年諾特，帶著成為冒險者的夢想離開山中小屋闖蕩世界。他毫不自覺自己早已強到超乎常理，屢屢用一記「招架」化解強敵猛攻，卻總被旁人誤會成深藏不露的高手，鬧出一連串令人捧腹的美麗誤會。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/watch?v=qfdcpbrfp4s",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81910115"
  },
  "152681": {
   "title": "義妹生活",
@@ -8800,7 +9050,9 @@ const CN_OVERLAY = {
   "genre": "異世界、動作、奇幻、喜劇",
   "desc": "三十多歲才轉職成為冒險者的大叔，陰錯陽差被最強隊伍相中入隊，從此展開遠超常人想像的地獄式特訓。原本只是平凡新人的他，在近乎摧殘的鍛鍊下逐漸脫胎換骨，實力直逼隊伍中的頂尖高手。看似荒謬的操練日常，其實是一部大器晚成的異世界成長物語。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLuxqoToY7UchnaxGQ5wtlt20AkZ2kKsIr",
+  "youtubeSource": "Muse木棉花-HK"
  },
  "158559": {
   "title": "2.5次元的誘惑",
@@ -8808,7 +9060,10 @@ const CN_OVERLAY = {
   "genre": "喜劇、戀愛、宅文化、校園",
   "desc": "熱愛二次元角色扮演的高中生涼太，向來對真人毫無興趣，直到遇見在校內悄悄從事Coser活動的美少女莉莉薩。莉莉薩懇求涼太幫忙製作角色服裝，兩人因共同的興趣逐漸靠近。故事圍繞著同人展、攝影與角色扮演文化，描繪一段從次元壁邊緣悄悄萌芽的曖昧情愫。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfpFKkFxannNMKGtTaliarw5",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81909977"
  },
  "133845": {
   "title": "劇場版 OVERLORD 聖王國篇",
@@ -8816,7 +9071,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、動作、異世界、黑暗",
   "desc": "統治納薩力克地下大墳墓的至尊安茲，率領麾下強大魔物軍團前進聖王國，援助遭亞人軍團侵略的當地民眾。看似正義的援軍行動背後，實則暗藏著安茲不為人知的算計與野心。電影版聚焦於聖王國篇章，呈現安茲陣營與人類勢力交錯下更龐大的戰略與衝突。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "netflix": "https://www.netflix.com/tw/title/82040442"
  },
  "173295": {
   "title": "小市民系列",
@@ -8825,7 +9081,10 @@ const CN_OVERLAY = {
   "desc": "曾經妄想成為「邪惡」與「名偵探」的兩名高中生小鳩與小佐內，在經歷過去的挫敗後立誓收斂鋒芒，做回平凡不起眼的「小市民」。然而周遭接連發生的離奇小事件，總讓兩人忍不住動用推理天賦介入其中，也讓兩人小心翼翼維持的平凡誓言屢屢面臨考驗。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "shoushimin-series"
+  "series": "shoushimin-series",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtS092epDz2jxQkCRT67XfSd",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81566407"
  },
  "166710": {
   "title": "異世界自殺突擊隊",
@@ -8833,7 +9092,10 @@ const CN_OVERLAY = {
   "genre": "異世界、動作、黑色喜劇、血腥暴力",
   "desc": "一群被監禁的死囚罪犯，在政府的脅迫下組成「自殺突擊隊」，被強行傳送至異世界執行不可能的任務。面對兇殘魔物與陌生法則，這群毫無合作精神的罪犯必須在爾虞我詐中彼此利用求生，用血腥暴力與黑色幽默交織出一部顛覆傳統異世界設定的另類作品。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLxSscENEp7Jh3bhDq-EYeXx6Seif0sN2m",
+  "youtubeSource": "Ani-One Asia",
+  "netflix": "https://www.netflix.com/tw/title/81767643"
  },
  "167419": {
   "title": "為何我的世界被遺忘了？",
@@ -8841,7 +9103,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、動作、懸疑、戀愛",
   "desc": "少年空遠一覺醒來，發現自己深愛的青梅竹馬與所有共同回憶竟從世界上徹底消失，彷彿從未存在過，身邊的人也毫無異狀。他必須獨自面對這場詭異的「遺忘」危機，在真相被層層掩蓋的異常世界中，尋找失落的記憶與那個對他而言無可取代的重要之人。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtQjtiAhDAhKv0WprucTbWk9",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81909528"
  },
  "139095": {
   "title": "FAIRY TAIL 魔導少年 百年任務",
@@ -8849,7 +9114,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、冒險、動作、夥伴",
   "desc": "妖精尾巴擊敗魔法女皇後過了數年，納茲、露西等人重組隊伍，向著傳說中無人成功過的「百年任務」展開挑戰。旅途中他們陸續結識新夥伴，一同踏上更加廣闊的冒險舞台，延續原作精神再度啟程，見證這群魔導士夥伴們攜手克服艱難試煉的成長物語。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfpdTmMt-95XJTFvFljVGmj5",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81910168"
  },
  "173584": {
   "title": "魔王軍最強的魔術師是人類",
@@ -8857,7 +9125,10 @@ const CN_OVERLAY = {
   "genre": "異世界、奇幻、動作",
   "desc": "在魔王軍中屢建奇功、被譽為最強魔術師的雷梅剛，其實隱藏著自己是人類的秘密。表面上是魔族陣營倚重的軍師，暗地裡卻要小心翼翼掩飾真實身分，周旋於猜忌重重的魔族高層之間。故事以顛倒立場的視角，描繪一名偽裝者在敵營中步步為營求生的異世界故事。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtTlMdsjNTZEw4nnM-O_866L",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81948358"
  },
  "168872": {
   "title": "只想告訴你 3RD SEASON",
@@ -8865,7 +9136,8 @@ const CN_OVERLAY = {
   "genre": "戀愛、校園、青春、溫馨",
   "desc": "個性內向、常被誤會為靈異人物的爽子，在與開朗的風早結為戀人後，兩人的感情邁入新的階段。第三季故事聚焦於升上高三、面臨升學與未來出路的爽子與風早，在友情與愛情之外，也要學著面對即將各奔前程的現實，延續系列一貫溫暖細膩的青春群像。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "netflix": "https://www.netflix.com/tw/title/81483827"
  },
  "168013": {
   "title": "我的英雄學院劇場版：You're Next",
@@ -8874,7 +9146,8 @@ const CN_OVERLAY = {
   "desc": "在無個性者也能成為英雄的世界裡，即將邁向畢業的緑谷出久與雄英同學們，迎來一場撼動整個英雄社會體制的全新危機。電影版描繪出久與夥伴們面對前所未見強敵時的成長與抉擇，延續系列一貫的熱血基調，將故事推向動畫原作邁向終章前的重要篇章。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "boku-no-hero-academia"
+  "series": "boku-no-hero-academia",
+  "netflix": "https://www.netflix.com/tw/title/82036353"
  },
  "139825": {
   "title": "這是妳與我的最後戰場，或是開創世界的聖戰 第二季",
@@ -8899,7 +9172,10 @@ const CN_OVERLAY = {
   "genre": "喜劇、奇幻、魔法少女、日常",
   "desc": "曾經是死對頭的魔法少女與邪惡幹部，在漫長的戰鬥落幕後意外搬到同一棟公寓成為鄰居。褪去戰鬥時的敵對姿態，兩人在日常生活中笑料百出地磨合相處，從原本你死我活的宿敵，逐漸發展出一段令人會心一笑的另類鄰居情誼，短篇形式呈現輕鬆詼諧的日常喜劇。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/watch?v=eMVkWPGcuXU",
+  "youtubeSource": "曼迪Mighty TV動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81910093"
  },
  "177697": {
   "title": "DDDD 惡魔的破壞",
@@ -8908,7 +9184,8 @@ const CN_OVERLAY = {
   "desc": "東京上空懸浮著巨大不明母艦，居民卻早已習慣與外星威脅共處的荒誕日常。少女門出與王欄升上高三，一邊煩惱升學與友情，一邊目睹社會在末日陰影下逐漸失序崩解，用青春的視角凝視這個既日常又異常的世界。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "dddd-destruction"
+  "series": "dddd-destruction",
+  "netflix": "https://www.netflix.com/tw/title/81977774"
  },
  "171031": {
   "title": "異世界悠閒紀行～邊養娃邊當冒險者～",
@@ -8916,7 +9193,9 @@ const CN_OVERLAY = {
   "genre": "異世界、悠閒、奇幻、冒險",
   "desc": "因意外轉生到異世界的少年阿斯塔，自幼被強大魔物撫養長大，習得超乎常人的能力。成年後他一邊照顧收養的幼獸與魔物孩子們，一邊以冒險者身分展開步調悠閒卻充滿溫情的異世界生活，享受平凡卻珍貴的育兒與冒險日常。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfpwmH5VLDBKBBjTkZu2BMOq",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "167420": {
   "title": "尼爾：自動人形 Ver1.1a 第2期",
@@ -8925,7 +9204,8 @@ const CN_OVERLAY = {
   "desc": "機械生命體占領地球，人類殘存勢力派遣仿生人與其對抗。2B、9S 與 A2 三人在荒蕪廢土上執行任務，逐漸揭開機械與仿生人背後隱藏的真相與矛盾，故事於第二期持續深入探討存在意義與犧牲的沉重命題。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "nier-automata"
+  "series": "nier-automata",
+  "netflix": "https://www.netflix.com/tw/title/81680344"
  },
  "163133": {
   "title": "學姊是男孩",
@@ -8950,7 +9230,8 @@ const CN_OVERLAY = {
   "genre": "喜劇、VTuber、日常、網路文化",
   "desc": "新人 VTuber「淡雪」個性膽小又容易緊張，卻總是在直播結束後忘記關閉串流，把私下真實又脫線的一面全都播送給觀眾，反而因此圈粉無數，意外走紅成為傳說。故事以輕鬆詼諧的筆觸描繪虛擬主播文化與其台前幕後的反差萌。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "netflix": "https://www.netflix.com/tw/title/81948389"
  },
  "154963": {
   "title": "ATRI -My Dear Moments-",
@@ -8966,7 +9247,9 @@ const CN_OVERLAY = {
   "genre": "異世界、奇幻、冒險、戰鬥",
   "desc": "出身平凡「路人」職業的凱伊，在探索地下城的世界裡意外覺醒能持續突破極限的稀有天賦，逐漸從被忽視的小角色成長為足以撼動整個迷宮都市的英雄。故事描寫少年一步步累積實力、扭轉命運的探索與成長歷程。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfrqvOIWJgzG8qgyi71irIsA",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "168623": {
   "title": "魔導具師妲莉雅不低頭",
@@ -8999,7 +9282,10 @@ const CN_OVERLAY = {
   "genre": "喜劇、奇幻、吸血鬼、原創",
   "desc": "過氣女星金城夜在深夜遭遇意外死亡卻意外化身吸血鬼，被熱衷都市傳說直播的少女紅子相中，兩人聯手以超自然題材經營頻道衝人氣。故事以獵奇又詼諧的筆觸，描寫演藝圈邊緣人與網路直播文化碰撞出的荒誕日常。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtQJOwGjf1ZWl-QVG-GTOqIt",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81948421"
  },
  "157371": {
   "title": "掰掰、地球",
@@ -9040,7 +9326,8 @@ const CN_OVERLAY = {
   "genre": "異世界、遊戲、喜劇、奇幻",
   "desc": "身為遊戲除錯員的上原惠，因故被捲入自己過去測試過的奇幻遊戲世界之中。憑藉對遊戲漏洞與隱藏機制瞭若指掌的專業知識，他運用各種意想不到的「抓漏」技巧在異世界中求生，展開一段充滿吐槽與歡笑的冒險。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "netflix": "https://www.netflix.com/tw/title/81948423"
  },
  "151117": {
   "title": "劇場版 物怪：唐傘",
@@ -9048,7 +9335,8 @@ const CN_OVERLAY = {
   "genre": "妖怪、懸疑、劇情、和風、驚悚",
   "desc": "神秘的賣藥郎再度現身，這回踏入歌舞伎劇場，調查纏繞於此的「唐傘」妖異。透過探究「形、真、理」三個謎團，他逐步揭開隱藏在絢爛舞台背後、糾結人心深處的怨念與秘密，以獨樹一格的和風美術演繹驚悚物語。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "netflix": "https://www.netflix.com/tw/title/81580574"
  },
  "167991": {
   "title": "TRUMP 系列 Delico's Nursery",
@@ -9064,7 +9352,8 @@ const CN_OVERLAY = {
   "genre": "校園、日常、攝影、青春、百合",
   "desc": "曾經熱愛攝影卻因某次挫折而封閉相機的少女，在轉學後遇見同樣鍾情攝影的同好，兩人透過鏡頭重新捕捉光影與彼此的心意。故事以攝影社為舞台，細膩描繪青春校園中若有似無、朦朧美好的少女情誼。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "netflix": "https://www.netflix.com/tw/title/81948293"
  },
  "168345": {
   "title": "地下城中的人",
@@ -9115,7 +9404,9 @@ const CN_OVERLAY = {
   "desc": "少女英雄「照」擁有讓周遭幸福的異能，卻因害羞內向難以正視鎂光燈。當黑暗組織企圖奪取東京，她必須與各國超級英雄並肩作戰，克服自身心結，在保護城市的同時，重新找回挺身而出的勇氣與自信。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "shy-hero"
+  "series": "shy-hero",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfq2P1Zmx6JAgjp201RLMTIf",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "176660": {
   "title": "戰國妖狐 千魔混沌篇",
@@ -9123,7 +9414,9 @@ const CN_OVERLAY = {
   "genre": "動作、奇幻、靈異神怪、歷史、血腥暴力",
   "desc": "半妖狐少年陣馬與同伴踏上復仇之路，於戰國亂世中對抗操縱人心的邪惡妖怪。隨著千魔齊聚、天下陷入更深沉的混沌，昔日恩怨與新仇交織，一場攸關妖魔與人類存亡的殊死戰就此展開。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtTJ4K9PFAHWWV6jqpBux-tJ",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "169692": {
   "title": "拳願阿修羅 第二季 Part.2",
@@ -9132,7 +9425,8 @@ const CN_OVERLAY = {
   "desc": "地下格鬥賽事「拳願」進入白熱化階段，各企業派出旗下鬥士捉對廝殺，勝負攸關公司命運。少年刃更以拳願阿修羅之姿持續突破極限，在血肉橫飛的擂台上，見證強者為尊的殘酷法則與人性掙扎。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "kengan-ashura-s2"
+  "series": "kengan-ashura-s2",
+  "netflix": "https://www.netflix.com/tw/title/80992228"
  },
  "177814": {
   "title": "魔鬼終結者 Zero",
@@ -9140,7 +9434,8 @@ const CN_OVERLAY = {
   "genre": "動作、科幻、驚悚",
   "desc": "1997年，日本一名科學家開發出對抗天網的AI系統，卻意外成為改變人類命運的關鍵。當殺人機器跨越時空追殺而來，一個家庭被迫捲入這場攸關存亡的戰爭，在絕望中尋找扭轉未來的一線生機。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "netflix": "https://www.netflix.com/tw/title/81217220"
  },
  "174070": {
   "title": "多數欠",
@@ -9148,7 +9443,8 @@ const CN_OVERLAY = {
   "genre": "懸疑、心理、黑暗、生存遊戲",
   "desc": "一群素不相識的人被強制關入密室，被迫參與殘酷投票遊戲——每輪多數決淘汰少數者，唯有猜中大眾心理才能存活。在猜疑與背叛交織的極限心理戰中，人性的自私與善意將被徹底檢驗。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "netflix": "https://www.netflix.com/tw/title/81787948"
  },
  "180332": {
   "title": "物語系列 第外季＆第怪季：殘酷童話 美麗公主",
@@ -9164,7 +9460,10 @@ const CN_OVERLAY = {
   "genre": "動作、奇幻、冒險、悠閒",
   "desc": "武神咲稻姬因擅離職守被貶至妖怪島贖罪，白天她揮劍斬妖、探索地下城，夜晚則得學習開墾農地、插秧收成，唯有種出優質稻米才能提升戰力。動作與農耕經營意外融合，譜出獨特的冒險物語。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtTjJqpl5w61JX4qISyG5T73",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81914001"
  },
  "170998": {
   "title": "拉麵赤貓",
@@ -9181,7 +9480,9 @@ const CN_OVERLAY = {
   "desc": "在正篇故事之後，各務原撫子與夥伴們再度整裝出發，透過幾段番外插曲補完角色間尚未道盡的心意與日常。伴隨熟悉的爐火與帳篷，繼續呈現屬於她們獨有、悠然自得的露營時光。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "yuru-camp-s3"
+  "series": "yuru-camp-s3",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtS9XXLNeCK883vWIQDZIsn6",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "150103": {
   "title": "瑞克和莫蒂：日本動畫",
@@ -9229,7 +9530,8 @@ const CN_OVERLAY = {
   "genre": "運動、競技、勵志",
   "desc": "懷抱高爾夫夢想的少年郁繼續磨練球技，挑戰更高水準的賽事與強敵。在天賦與努力交織的成長路上，他必須克服傷病與心理壓力，一步步朝職業選手之路邁進，證明自己配得上球場上的掌聲。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "netflix": "https://www.netflix.com/tw/title/81563026"
  },
  "177008": {
   "title": "特別篇 吹響吧！上低音號～合奏團競賽篇～",
@@ -9255,7 +9557,10 @@ const CN_OVERLAY = {
   "desc": "昔日超人始祖之間爆發的傳說之戰重新揭幕，各路完美超人展現超越常識的力量與招式，在充滿荒誕與熱血的擂台上一較高下。經典摔角漫畫回溯起源篇章，重現超人們最初的榮耀與恩怨糾葛。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "kinnikuman-perfect-origin"
+  "series": "kinnikuman-perfect-origin",
+  "youtube": "https://www.youtube.com/watch?v=LX6nfmUDIhk",
+  "youtubeSource": "回歸線娛樂(Tropics Entertainment)",
+  "netflix": "https://www.netflix.com/tw/title/81781519"
  },
  "144779": {
   "title": "宇宙戰艦大和號 REBEL 3199",
@@ -9322,7 +9627,8 @@ const CN_OVERLAY = {
   "genre": "喜劇、日常、家庭",
   "desc": "野原一家飼養的小白某天邂逅一隻迷你恐龍，兩者跨越物種的深厚情誼悄悄萌芽。這段奇妙相遇不僅牽動小新與春日部防衛隊眾人的心，也讓大家在陪伴恐龍尋找歸屬的過程中，體會到成長與離別的滋味，是系列第32部電影長片。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "netflix": "https://www.netflix.com/tw/title/82026163"
  },
  "179991": {
   "title": "Fate/Grand Order 搞不懂的藤丸立香 第二期",
@@ -9331,7 +9637,9 @@ const CN_OVERLAY = {
   "desc": "人類最後的御主藤丸立香雖然拯救了世界，個性卻誠實過了頭，總是問出天真無邪卻讓從者們哭笑不得的問題。第二季延續前作荒謬爆笑的日常步調，讓眾多英靈再次為這位少根筋主人公傷透腦筋，帶來輕鬆逗趣的番外短篇。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "fgo-fujimaru-ritsuka"
+  "series": "fgo-fujimaru-ritsuka",
+  "youtube": "https://www.youtube.com/playlist?list=PLkybqduWZGqtDqXo4rBp1M0jMfCOaS0cr",
+  "youtubeSource": "Fate/Grand Order 官方頻道（FGOchannel）"
  },
  "168998": {
   "title": "ZEGAPAIN STA",
@@ -9347,7 +9655,9 @@ const CN_OVERLAY = {
   "genre": "喜劇",
   "desc": "漂浮於海上的神秘小島居民，日日沉醉於傳說歌姬的美妙歌聲中。當歌姬忽然消失，猜忌、憤怒與不安隨即在島上蔓延，各方勢力為爭奪她的「遺產」明爭暗鬥、荒誕角力，一場圍繞著歌姬下落展開的爆笑鬧劇就此揭幕。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtSPAPnNgXxqRRTIWqwRjS98",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "179954": {
   "title": "未來的黑幕系反派千金莫里亞蒂的異世界完全犯罪白書",
@@ -9363,7 +9673,9 @@ const CN_OVERLAY = {
   "genre": "恐怖",
   "desc": "夜幕低垂，一名饑餓的吸血鬼悄悄潛入城市尋找獵物。定格動畫呈現出獨特的詭譎氛圍，短短數分鐘內堆疊出濃厚的驚悚張力，描繪這位夜行者為求生存所展開的獵食行動，是充滿黑色幽默與血腥美學的迷你恐怖小品。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/watch?v=BRHrAMYkeLs",
+  "youtubeSource": "takena（原創作者本人頻道）"
  },
  "178421": {
   "title": "圓圓的女友與殘念的男友",
@@ -9397,7 +9709,8 @@ const CN_OVERLAY = {
   "genre": "喜劇、日常",
   "desc": "3DCG動畫第三季，延續小貓奇奇與山田一家溫馨日常的故事。暑假來臨，奇奇跟著一家人展開悠閒又充滿驚喜的假期生活，從院子裡的小冒險到家人間的溫暖互動，用貓咪視角記錄下平凡卻療癒人心的夏日時光。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "netflix": "https://www.netflix.com/tw/title/81712502"
  },
  "211328": {
   "title": "第一線",
@@ -9414,7 +9727,9 @@ const CN_OVERLAY = {
   "desc": "為紀念原作漫畫連載三十週年推出的全新動畫企劃，延續橘家一如既往荒謬又溫暖的家庭日常。個性迷糊的媽媽、嚴肅的爸爸與吐槽力全開的姊弟，用他們特有的搞笑步調，持續記錄再平凡不過卻又充滿笑點的家庭生活。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "atashinchi-next"
+  "series": "atashinchi-next",
+  "youtube": "https://www.youtube.com/watch?v=rTpixId_5vY",
+  "youtubeSource": "Muse木棉花-闔家歡"
  },
  "182879": {
   "title": "辦公室工作",
@@ -9431,7 +9746,9 @@ const CN_OVERLAY = {
   "desc": "由知名玩具品牌與人氣男子偶像團體攜手打造的跨界動畫企劃，透過一群個性各異的擬人化動物角色，描繪他們在日常生活中互相扶持、共同成長的溫馨點滴，用輕鬆歡快的步調傳遞夥伴間彼此陪伴的珍貴情誼。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "jochum"
+  "series": "jochum",
+  "youtube": "https://www.youtube.com/watch?v=wsafQ2INqDk",
+  "youtubeSource": "JOCHUM・ジェオチャム【official】（三麗鷗Sanrio官方頻道）"
  },
  "185669": {
   "title": "無名怪談 第三季",
@@ -9440,7 +9757,9 @@ const CN_OVERLAY = {
   "desc": "神秘男子六道寺娓娓道出一則則不該被知曉的都市怪談，其中潛藏著足以撼動現實的詭異力量。少女梵與少年心以聯手對抗接連現身的超自然威脅，在真相與恐懼交織的靈異事件中，逐步揭開怪談背後隱藏的秘密。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "nanashi-kaidan"
+  "series": "nanashi-kaidan",
+  "youtube": "https://www.youtube.com/playlist?list=PL58O4nPuExbBiaHSLKKVqgM9uQJdv2wLu",
+  "youtubeSource": "ShoPro アニメチャンネル（官方）"
  },
  "176283": {
   "title": "四處貼上吧！小狗 第二季",
@@ -9456,7 +9775,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、教育",
   "desc": "以幽默方式帶領觀眾認識歷史名人語錄的另類知識系動畫。節目先故意呈現「誤譯」版本的名言，再逐步導正為原意，透過反差與笑點加深觀眾印象，是一部寓教於樂、集結多位人氣聲優詮釋歷史人物的趣味短篇。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLQyvkHBZA_xCR1tAqIJHhpeQdoDR5z8oN",
+  "youtubeSource": "KING AMUSEMENT CREATIVE 官方頻道"
  },
  "180847": {
   "title": "PIHOTEK：乘風漫步北極",
@@ -9464,7 +9785,9 @@ const CN_OVERLAY = {
   "genre": "冒險",
   "desc": "改編自北極探險家所著繪本，描繪一段迎著刺骨寒風、徒步橫越北極的旅程。短短兩分鐘的動畫濃縮了廣袤雪原的壯闊景色與探險過程中的孤獨與堅毅，用簡潔畫面傳遞人與極地自然搏鬥時的敬畏與感動。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/watch?v=NookzYI3HdU",
+  "youtubeSource": "北極冒険家・荻田泰永 冒険研究所（原作者相關官方頻道）"
  },
  "178620": {
   "title": "幸運兔露妮與生日先生",
@@ -9472,7 +9795,9 @@ const CN_OVERLAY = {
   "genre": "冒險、日常",
   "desc": "改編自同名繪本角色的迷你動畫，講述幸運兔露妮與掌管生日的神秘角色相遇的溫馨故事。透過簡單純真的畫風，傳遞出關於生日祝福與珍惜當下的小小啟示，是獻給大小朋友的一分鐘療癒繪本動畫。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/watch?v=mumLc9WO_-0",
+  "youtubeSource": "アニエホンANIMEHON（官方）"
  },
  "177160": {
   "title": "冒險大陸 安尼亞王國：傳說守護者篇",
@@ -9480,7 +9805,9 @@ const CN_OVERLAY = {
   "genre": "冒險",
   "desc": "玩具品牌旗下人氣企劃第二季，故事舞台來到充滿冒險氣息的動物王國。角色們為尋找傳說中的守護者展開一場場刺激冒險，途中會遇見形形色色的夥伴與對手，用簡單明快的節奏帶領小觀眾一同探索未知世界。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLhWipIfRhqz34m0ZbRs52MO2ML8mKoOcw",
+  "youtubeSource": "タカラトミー官方頻道（Takara Tomy）"
  },
  "189964": {
   "title": "布散步：片頭風宣傳PV",
@@ -9488,7 +9815,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、科幻",
   "desc": "為宣傳同名直式漫畫而製作的形象宣傳動畫，模擬正統動畫片頭的華麗運鏡與節奏，帶出主角少女與神秘外星生物相遇的科幻喜劇氛圍。短短兩分鐘濃縮了原作的世界觀與角色魅力，成功吊足讀者對正篇故事的胃口。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/watch?v=idzvDWQS4-0",
+  "youtubeSource": "TOHO animationチャンネル（官方）"
  },
  "189736": {
   "title": "GO！GO！載具動物園",
@@ -9496,7 +9825,9 @@ const CN_OVERLAY = {
   "genre": "日常、冒險",
   "desc": "玩具品牌人氣企劃續篇，新增角色包括擅長追蹤的小狗摩可、與她合作無間的消防車夥伴凡恩，以及神秘的反派角色。擬人化的交通工具們在充滿冒險色彩的世界裡並肩作戰，用色彩繽紛的畫面與簡單故事，帶給小朋友滿滿的樂趣。",
   "year": 2024,
-  "season": "SUMMER"
+  "season": "SUMMER",
+  "youtube": "https://www.youtube.com/playlist?list=PLhWipIfRhqz3txp_x97PUFXxsfjbXSeml",
+  "youtubeSource": "タカラトミー官方頻道（Takara Tomy）"
  },
  "204620": {
   "title": "湖池屋SDGs劇場 薩斯與緹娜 第五季",
@@ -9505,7 +9836,9 @@ const CN_OVERLAY = {
   "desc": "知名零食品牌打造的永續發展教育短篇動畫，邁入第五個年頭。透過角色薩斯與緹娜爆笑又充滿行動力的冒險日常，將環保與永續發展等艱澀概念轉化為淺顯易懂的小故事，讓大小朋友在歡笑中認識SDGs的重要精神。",
   "year": 2024,
   "season": "SUMMER",
-  "series": "sasu-tina"
+  "series": "sasu-tina",
+  "youtube": "https://www.youtube.com/playlist?list=PLWcHadqZmb9FHZSprzG1fccoIfTTiAJSu",
+  "youtubeSource": "koikeya 官方頻道"
  },
  "170297": {
   "title": "雖然不是我的菜～跟討厭的姊姊超合拍的性愛～",
@@ -9622,7 +9955,10 @@ const CN_OVERLAY = {
   "desc": "日比野卡夫卡曾與青梅竹馬約定一同加入防衛隊討伐怪獸,如今卻淪為每天清理怪獸屍體的普通上班族。一場意外讓他的身體產生異變,成為擁有怪獸力量的人形巨獸,必須在守護日本安全的防衛隊與隱瞞自己已非人類的秘密之間艱難周旋。",
   "year": 2024,
   "season": "SPRING",
-  "series": "kaiju-no-8"
+  "series": "kaiju-no-8",
+  "youtube": "https://www.youtube.com/watch?v=Scub56i1fu8",
+  "youtubeSource": "Ani-One 精選",
+  "netflix": "https://www.netflix.com/tw/title/81759290"
  },
  "166240": {
   "title": "鬼滅之刃 柱訓練篇",
@@ -9630,7 +9966,8 @@ const CN_OVERLAY = {
   "genre": "動作、奇幻、少年、劍戟",
   "desc": "歷經無限城前哨戰而元氣大傷的鬼殺隊,在鬼舞辻無慘展開全面反擊之前,由炭治郎率領同期夥伴接受最強劍士「柱」們近乎斯巴達式的嚴苛特訓,淬鍊體能與呼吸法極限。溫馨日常與熱血汗水交織,為系列最終決戰揭開序幕。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81091393"
  },
  "166873": {
   "title": "無職轉生～到了異世界就拿出真本事～第二季（後篇）",
@@ -9639,7 +9976,10 @@ const CN_OVERLAY = {
   "desc": "魯迪烏斯在異世界逐步建立起自己的家庭與事業,身邊親友的羈絆也隨之加深。本季後篇聚焦於他面對新危機時的成長與掙扎,昔日的心結與未解的過去逐漸浮現,是這位轉生者邁向真正成熟不可或缺的重要轉折。",
   "year": 2024,
   "season": "SPRING",
-  "series": "mushoku-tensei-s2"
+  "series": "mushoku-tensei-s2",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfozU6PKHlOwbskdUTFKnGrK",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/80987039"
  },
  "163270": {
   "title": "WIND BREAKER—防風少年—",
@@ -9648,7 +9988,8 @@ const CN_OVERLAY = {
   "desc": "轉學生櫻遙人抱著「打倒全日本最強」的目標來到風鈴高中,卻意外發現這裡的不良少年們平時默默守護著小鎮治安。原本孤僻厭世的他,在與夥伴間的衝突與並肩作戰中,逐漸找到願意付出真心守護的歸屬與夥伴。",
   "year": 2024,
   "season": "SPRING",
-  "series": "wind-breaker"
+  "series": "wind-breaker",
+  "netflix": "https://www.netflix.com/tw/title/81771389"
  },
  "156822": {
   "title": "關於我轉生變成史萊姆這檔事 第三季",
@@ -9657,7 +9998,10 @@ const CN_OVERLAY = {
   "desc": "魔物之國坦派斯特在利姆路帶領下迎來空前繁榮,卻也引來周邊各國與帝國勢力的猜忌與覬覦。當戰爭陰影逐步逼近,利姆路必須在守護國民福祉與避免衝突擴大之間艱難抉擇,牽動整個世界局勢的較量就此展開。",
   "year": 2024,
   "season": "SPRING",
-  "series": "tensei-slime"
+  "series": "tensei-slime",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfrcbVCNLpZFQz43Tbd6EaSK",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81028712"
  },
  "163139": {
   "title": "我的英雄學院 第七季",
@@ -9666,7 +10010,10 @@ const CN_OVERLAY = {
   "desc": "死柄木弔與敵聯盟全面失控,英雄社會陷入前所未有的危機。緑谷出久與雄英學院的同學們必須在戰火中加速成長,直面失去與犧牲的殘酷現實,肩負起守護未來的重責,朝著成為真正英雄之路邁向最終階段。",
   "year": 2024,
   "season": "SPRING",
-  "series": "boku-no-hero-academia"
+  "series": "boku-no-hero-academia",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtQT7s1soDpUQH2cQvGgmdrP",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/80135674"
  },
  "136804": {
   "title": "為美好的世界獻上祝福！3",
@@ -9674,7 +10021,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、喜劇、異世界、日常",
   "desc": "和真與惠惠、阿克婭、達克妮絲組成的最強廢柴小隊持續在阿克塞爾鎮闖禍,這回魔王軍幹部再度來襲,眾人一如既往地用歪打正著的方式化解危機。荒謬爆笑的日常與意外溫馨的羈絆,譜出這個異世界最沒用卻最幸福的冒險。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtSD95wSkYycIuRqLZUgwbyr",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/80131674"
  },
  "174788": {
   "title": "驀然回首",
@@ -9691,7 +10041,10 @@ const CN_OVERLAY = {
   "desc": "前世的魔法研究者轉生成為窮困小國的第七王子羅伊德,善用前世累積的知識鑽研魔術,卻因刻意掩飾實力而屢屢被誤認為天才或問題兒童。進入魔法學院後,他一邊低調度日一邊悄悄化解各種危機,展開悠然自得的異世界求學路。",
   "year": 2024,
   "season": "SPRING",
-  "series": "tensei-dai7-ouji"
+  "series": "tensei-dai7-ouji",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfrBGfIva7w63GfAyl9P7bLS",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81769842"
  },
  "170130": {
   "title": "從Lv2開始開外掛的前勇者候補過著悠哉異世界生活",
@@ -9699,7 +10052,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、異世界、日常、喜劇",
   "desc": "曾被判定為不合格勇者候補的青年,意外獲得能將任何生物馴服為夥伴的稀有能力,以看似弱小的等級2悄悄在異世界過著悠哉生活。當昔日勇者隊伍陷入危機,他不動聲色累積的實力才逐漸展露,譜出低調卻扎實的成長物語。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=jS2JMqxgznk",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81768199"
  },
  "145728": {
   "title": "狼與辛香料 MERCHANT MEETS THE WISE WOLF",
@@ -9707,7 +10063,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、劇情、經濟、戀愛",
   "desc": "商人羅倫斯在旅途中邂逅化身少女模樣的豐收之狼赫蘿,兩人一同展開跨越城鎮的貿易之旅。透過買賣交易與人情世故的鬥智鬥勇,逐漸建立起超越主僕關係的信賴與情愫,是系列經典重新動畫化後的全新起點。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81768918"
  },
  "158417": {
   "title": "戰隊大失格",
@@ -9733,7 +10090,10 @@ const CN_OVERLAY = {
   "desc": "高中生男主角在暗戀對象家中意外發現,對方一家竟是隱藏身分多年的精銳間諜世家。為了保護心儀的女孩不被組織盯上,他被迫入贅並加入這個古怪又溫暖的間諜家族,展開充滿笑料、槍戰與親情羈絆的偽裝日常生活。",
   "year": 2024,
   "season": "SPRING",
-  "series": "yozakura-daisakusen"
+  "series": "yozakura-daisakusen",
+  "youtube": "https://www.youtube.com/watch?v=aDWqD8pf_Eo",
+  "youtubeSource": "Muse木棉花-HK",
+  "netflix": "https://www.netflix.com/tw/title/81766575"
  },
  "164702": {
   "title": "轉生貴族憑鑑定技能扭轉人生",
@@ -9742,7 +10102,10 @@ const CN_OVERLAY = {
   "desc": "前世懷才不遇的青年轉生成沒落貴族家的三男,意外覺醒能看穿萬物真實價值的鑑定技能。他運用這項能力發掘被埋沒的人才與寶物,協助家族開拓領地、重振聲望,在爾虞我詐的貴族社會中一步步走出屬於自己的逆襲之路。",
   "year": 2024,
   "season": "SPRING",
-  "series": "tensei-kizoku-kantei"
+  "series": "tensei-kizoku-kantei",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtTpPAmFL_w5IByhmBv8C_9Y",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81769856"
  },
  "130590": {
   "title": "魔王學院的不適任者～史上最強的魔王始祖，轉生就讀子孫們的學校～第二季（後篇）",
@@ -9751,7 +10114,8 @@ const CN_OVERLAY = {
   "desc": "兩千年前平息紛爭的最強魔王始祖,轉生就讀由自己子孫創立的魔法學校。本季後篇他持續揭開被刻意扭曲的歷史真相,面對試圖顛覆和平秩序的新敵人,以壓倒性的力量貫徹自己「守護重要之人」的堅定信念。",
   "year": 2024,
   "season": "SPRING",
-  "series": "maou-gakuin-futekigousha-s2"
+  "series": "maou-gakuin-futekigousha-s2",
+  "netflix": "https://www.netflix.com/tw/title/81299326"
  },
  "169417": {
   "title": "Re:Monster",
@@ -9759,7 +10123,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、異世界、戰鬥、成長",
   "desc": "平凡青年遭遇意外身亡後,轉生成異世界中最弱小的哥布林。憑藉吞食強敵便能獲得其能力的特殊體質,他一路蠶食鯨吞、不斷進化蛻變,從食物鏈底層逐步爬升為令人聞風喪膽的強大魔物,展開弱肉強食的野性冒險。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfpiCXDKpeKMCmU_p4YQLCSA",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81766618"
  },
  "164212": {
   "title": "少女樂團 吶喊吧",
@@ -9775,7 +10142,9 @@ const CN_OVERLAY = {
   "genre": "音樂、青春、藝術、原創",
   "desc": "因人際挫折而放棄創作夢想的插畫少女,與各懷心結的女孩們相遇,組成結合虛擬與現實形象的女子團體「JELEE」。她們透過歌曲與影像作品重新找回熱情,卻也在名氣與現實壓力交織下,逐漸面對彼此關係中潛藏的裂痕。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfpkfBZYOenH5vU9CEaSuu63",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "158709": {
   "title": "Unnamed Memory 無名記憶",
@@ -9792,7 +10161,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、異世界、遊戲、戰鬥",
   "desc": "曾在死亡遊戲中奮戰求生的玩家,終於擊破最終頭目、迎來遊戲落幕的瞬間,卻發現自己被傳送到與遊戲世界極為相似、卻已過了五百年的異世界。他將以昔日累積的實力與裝備,在這片既熟悉又陌生的大陸展開全新冒險。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfoNmXwWBrLEZaJBnSaRC6Y2",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "165855": {
   "title": "花野井同學與戀愛病",
@@ -9800,7 +10171,10 @@ const CN_OVERLAY = {
   "genre": "戀愛、校園、喜劇、少女",
   "desc": "對戀愛毫無興趣、一心只想安穩度日的優等生少女,某天發現同班的萬人迷男同學竟對自己一見鍾情。面對這位坦率又執著示愛的男孩鍥而不捨的追求,原本冷淡以對的她,在一次次真誠互動中內心逐漸產生微妙動搖。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtRaevkUa7TslqFBBEv3PfN2",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81765078"
  },
  "143271": {
   "title": "魔法科高中的劣等生 第三季",
@@ -9816,7 +10190,10 @@ const CN_OVERLAY = {
   "genre": "劇情、美食、職人、生活",
   "desc": "年輕調酒師任職於銀座知名酒吧,憑藉對顧客心境的細膩體察,以一杯杯量身調製的雞尾酒溫柔撫慰形形色色的客人。每一段調酒背後,都藏著一則關於人生選擇、遺憾與情感糾葛的動人故事,交織成沁人心脾的職人物語。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtQb6US78mSi3nXspczmixuN",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81975201"
  },
  "168138": {
   "title": "老夫老妻重返青春",
@@ -9824,7 +10201,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、喜劇、日常、溫馨",
   "desc": "感情融洽的一對老夫妻,某天意外喝下神秘泉水後竟返老還童,瞬間變回年輕時的模樣與體力。兩人以歷經歲月淬鍊的心境與智慧,重新經歷早已錯過的青春歲月與心動時刻,溫暖詮釋歷久彌新、跨越年齡的深厚愛情。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81767667"
  },
  "163147": {
   "title": "劇場版藍色監獄 -EPISODE 凪-",
@@ -9832,7 +10210,8 @@ const CN_OVERLAY = {
   "genre": "運動、動作、少年、足球",
   "desc": "曾在藍色監獄選拔賽中黯然退場的凪誠士郎,轉戰守門員一職後遠赴義大利挑戰職業足壇。劇場版聚焦他與昔日夥伴重逢交鋒的關鍵賽事,描繪這位曾被視為邊緣人的少年如何在挫敗中找回自我,蛻變成無可取代的球員。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81940376"
  },
  "151380": {
   "title": "約會大作戰 DATE A LIVE V",
@@ -9840,7 +10219,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、戀愛、戰鬥、校園",
   "desc": "五河士道以「與精靈約會使其墜入愛河」的獨特方式封印精靈力量,拯救無數瀕臨失控的少女。最終季直面精靈誕生之謎與最大危機,士道與夜刀神十香等精靈少女們的羈絆,將迎來系列故事最終的考驗與結局。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfqGKcZDHneHmxd5wo0qEIo1",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "160181": {
   "title": "恰如細語般的戀歌",
@@ -9880,7 +10261,9 @@ const CN_OVERLAY = {
   "genre": "動作、格鬥、校園、勵志",
   "desc": "長期遭受霸凌、毫無存在感的高中生，某天決定將自己拜師習武、直播格鬥訓練的過程上傳網路，沒想到因此爆紅成為話題人物。隨著知名度水漲船高，他也逐漸被捲入更加凶險的地下格鬥世界。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=qZOmF0u26-E",
+  "youtubeSource": "回歸線娛樂（Tropics Entertainment，NADA GROUP旗下台灣IP代理發行公司）"
  },
  "166910": {
   "title": "殺手寓言",
@@ -9945,7 +10328,9 @@ const CN_OVERLAY = {
   "genre": "校園、戰鬥、日常、遊戲改編",
   "desc": "改編自人氣手機遊戲。在學生自治的獨立國度「基沃托斯」中，失去記憶的教官與聯合學生會的少女們相遇，一同著手調查潛藏在各個學園之間的謎團與危機，展開充滿羈絆的青春日常。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=WbKDOvIhwg0",
+  "youtubeSource": "ブルーアーカイブ-Blue Archive-（Nexon Games／遊戲官方YouTube頻道）"
  },
  "166828": {
   "title": "怪人的沙拉碗",
@@ -10004,7 +10389,8 @@ const CN_OVERLAY = {
   "desc": "擁有驚人投球天賦、卻對過去毫無記憶的少年，與兒時玩伴重逢後組成攻守搭檔，一起重返棒球場追逐夢想。隨著逐漸浮現的失落記憶，這對「投捕」搭檔也將共同面對更加嚴峻的比賽考驗。",
   "year": 2024,
   "season": "SPRING",
-  "series": "shitsuoku-touho"
+  "series": "shitsuoku-touho",
+  "netflix": "https://www.netflix.com/tw/title/81768229"
  },
  "148080": {
   "title": "又愛又恨的彆扭鬼",
@@ -10012,7 +10398,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、劇情、妖怪、青春",
   "desc": "住在偏僻山村的少年，因緣際會邂逅了外表如常人、實則擁有半妖血統的神秘少女。個性彆扭卻又坦率真誠的她，陪伴少年重新面對內心深藏已久的失落與傷痛，譜出一段溫柔動人的成長物語。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81582442"
  },
  "135643": {
   "title": "格林童話變奏曲",
@@ -10020,7 +10407,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、選集、劇情、黑暗童話",
   "desc": "由虛構的格林兄弟之妹輪流講述的短篇選集動畫，將《糖果屋》《小紅帽》等耳熟能詳的經典童話重新解構詮釋，賦予這些故事更貼近人性陰暗面、也更加成熟深刻的全新樣貌。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81050090"
  },
  "169698": {
   "title": "我回來了、歡迎回家",
@@ -10036,7 +10424,8 @@ const CN_OVERLAY = {
   "genre": "動作、格鬥、熱血、跨界",
   "desc": "兩大格鬥漫畫巨頭跨界聯動！以徒手格鬥聞名的範馬刃牙，遇上地下格鬥賽場「拳願」出身、被譽為最強的選手阿修羅。截然不同流派的格鬥家正面對決，掀起一場燃燒魂魄的巔峰死鬥。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81648184"
  },
  "171040": {
   "title": "星際莊的戀愛日記",
@@ -10060,7 +10449,8 @@ const CN_OVERLAY = {
   "genre": "運動、少年、勵志",
   "desc": "熱愛揮桿的少年在啟蒙者引導下踏入高爾夫球場，發現自己過人的天賦。面對一場場強敵環伺的比賽，他從基礎握桿學起，逐步磨練技巧與心理素質，立志站上世界職業高球的頂尖舞台，証明天分終須靠汗水澆灌才能開花結果。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81563026"
  },
  "175642": {
   "title": "SAND LAND",
@@ -10076,7 +10466,9 @@ const CN_OVERLAY = {
   "genre": "運動、勵志、萌系",
   "desc": "將人氣賽馬擬人化作品重新剪輯為電影版，聚焦一匹背負傷病與質疑的賽馬娘如何在訓練員陪伴下重返賽場。她從一次次落敗中站起，克服傷痛與自我懷疑，朝著頂尖賽事全力衝刺，用汗水寫下屬於自己的逆轉勝故事。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PLzFNGS7Rcf-PZC8MfcTJX7srArpLdvyfb",
+  "youtubeSource": "ぱかチューブっ!【ウマ娘公式】(Cygames官方頻道,oEmbed驗證author_name一致)"
  },
  "146867": {
   "title": "隔壁的妖怪鄰居",
@@ -10092,7 +10484,9 @@ const CN_OVERLAY = {
   "genre": "運動、原創、競速、青春",
   "desc": "以懸浮滑板競速運動為題材的原創動畫，描繪少女們為了在職業聯賽嶄露頭角，日以繼夜鍛鍊駕馭技巧、挑戰高速賽道。隊友間既是競爭對手也是彼此扶持的夥伴，透過一場場刺激賽事，逐步找到屬於自己奔馳的理由。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtQajKwdrjcX6S1-aT6q1Vnv",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "173935": {
   "title": "數分間的激勵",
@@ -10117,7 +10511,8 @@ const CN_OVERLAY = {
   "genre": "運動、足球、番外篇、喜劇",
   "desc": "作為凪誠士郎個人番外篇的延伸小短篇，描繪這位天才射手在藍色監獄合宿之外的輕鬆日常片段。透過隊友間插科打諢的互動，呈現凪冷淡外表下鮮少展露的一面，為主線故事之外補上一段饒富趣味的加時彩蛋。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81940376"
  },
  "150085": {
   "title": "刀劍亂舞 迴 虛傳 燃燒本能寺",
@@ -10183,7 +10578,8 @@ const CN_OVERLAY = {
   "genre": "科幻、冒險、時間穿越、少年",
   "desc": "改編自經典漫畫，平凡少年某日意外獲得穿越時空的道具，被神秘組織「時間巡邏隊」延攬為新成員，肩負起修正歷史異常事件的任務。他跟著前輩穿梭古今各個時代，在冒險中學習何謂責任，也逐漸看清歷史真正的重量。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81497635"
  },
  "177106": {
   "title": "餓狼傳：孤狼之道",
@@ -10191,7 +10587,8 @@ const CN_OVERLAY = {
   "genre": "格鬥、動作、劇情",
   "desc": "改編自知名格鬥小說，描繪一名出身柔道世家的青年毅然投身異種格鬥擂台的血淚旅程。他在拳腳交錯的殘酷賽場上一次次跌倒又爬起，逐步淬鍊出屬於自己的戰鬥哲學，走出一條不依附任何流派、真正屬於孤狼的道路。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81215625"
  },
  "172395": {
   "title": "新幹線變形機器人：變革世代",
@@ -10199,7 +10596,9 @@ const CN_OVERLAY = {
   "genre": "機甲、動作、兒童、科幻",
   "desc": "系列最新作，會變形成新幹線列車的巨大機器人再度集結，迎戰來自未知維度的神秘敵人。新一代少年駕駛員與夥伴機器人並肩作戰，在一次次列車競速與機甲對戰中成長，攜手守護鐵道與城市不被威脅吞噬。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PLnWnJU4qf72qBW2axGm5rSGz2ZNHYPOzr",
+  "youtubeSource": "シンカリオンTV(官方頻道,テレビ東京/製作委員會)"
  },
  "163141": {
   "title": "RINKAI！女子競輪",
@@ -10207,7 +10606,9 @@ const CN_OVERLAY = {
   "genre": "運動、競速、青春、女子",
   "desc": "以女子競輪（自行車競速）為題材的運動動畫，描繪少女選手為了在職業賽場站穩腳步，投入嚴苛的體能與戰術訓練。速度與策略交織的賽道上，她們彼此較勁又相互激勵，用踩踏踏板的每一圈汗水追逐屬於自己的名次。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtSNRY-Cv_IcAhwt73ZxRnzh",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "172242": {
   "title": "Love Live！虹咲學園 學園偶像同好會 短篇動畫 第二季",
@@ -10224,7 +10625,9 @@ const CN_OVERLAY = {
   "genre": "魔法少女、偶像、兒童、音樂",
   "desc": "改編自人氣街機卡片遊戲，描繪嚮往成為偶像的女孩意外獲得神秘力量，得以化身閃耀舞台的偶像公主。她一邊隱瞞這個祕密身分，一邊在歌唱與舞蹈的磨練中逐步找回自信，與夥伴們攜手朝夢想中的舞台前進。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PL6VN7enyUDE722_fqwjToMxSTMmmt8tMt",
+  "youtubeSource": "【公式】アイプリちゅ〜ぶ(官方頻道)"
  },
  "176663": {
   "title": "少女與戰車 隊長之戰",
@@ -10248,7 +10651,9 @@ const CN_OVERLAY = {
   "genre": "麻將、喜劇、遊戲改編",
   "desc": "改編自人氣線上麻將遊戲的短篇動畫，以輕鬆搞笑的節奏描繪遊戲中人氣角色們圍坐雀桌、鬥智鬥牌的日常趣事。透過誇張逗趣的演出，將麻將對局中的緊張與歡樂氣氛具象化，是獻給玩家的輕鬆小品。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=E454yHYH_vw",
+  "youtubeSource": "【公式】雀魂-じゃんたま-(Yostar官方頻道)"
  },
  "170593": {
   "title": "新・不做嗎",
@@ -10264,7 +10669,9 @@ const CN_OVERLAY = {
   "genre": "魔法少女、懷舊、特別篇、日常",
   "desc": "為紀念系列問世多年推出的特別篇，讓當年那群立志成為魔女見習生的少女們以嶄新面貌重新登場。故事在懷舊氛圍中融入新視角，向長大成人的老粉絲們，重新訴說一段關於友情與成長的溫暖魔法物語。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=i3mzMFy3dBg",
+  "youtubeSource": "東映アニメーション公式YouTubeチャンネル(Toei Animation官方頻道)"
  },
  "172187": {
   "title": "闇影詩章F 拱之章",
@@ -10272,7 +10679,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、卡牌對戰、動作、遊戲改編",
   "desc": "承接前作《闇影詩章F 七影篇》,自封為新世界主宰的「拱之支配者」引發異變,使世上所有數位夥伴淪為失控的「暗影獸」。天龍・光與夥伴們臨危受命,肩負起消滅三座導致世界崩壞之高塔的重任。手持能夠對抗暗影獸的「Negza系統」,一行人展開一場攸關世界命運的卡牌對戰,為守護日常挺身迎戰。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PLHLXVxqL73-ytpbEoKvow41WPZWofcaCH",
+  "youtubeSource": "テレ東アニメ(TV Tokyo官方頻道/あにてれ)"
  },
  "204762": {
   "title": "花園入口",
@@ -10280,7 +10689,9 @@ const CN_OVERLAY = {
   "genre": "原創、選集動畫、實驗",
   "desc": "由知名動畫監督谷口悟朗擔任創意監製,Azuki與電通聯手打造的三段式原創選集動畫。每一集皆邀集不同創作團隊,以獨立故事與風格各異的美術呈現,探索超越類型框架的敘事實驗。三段短篇彼此獨立卻共享同一片想像的「花園」,獻給觀眾一場充滿驚喜與省思的視覺與敘事冒險。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=tPmOgw2MM9Y",
+  "youtubeSource": "Azuki(電通與Chiru Labs/Azuki NFT企劃官方頻道)"
  },
  "156727": {
   "title": "i☆Ris the Movie -Full Energy!!-",
@@ -10304,7 +10715,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、日常、間諜",
   "desc": "改編自人氣間諜家族漫畫《夜櫻家大作戰》的迷你番外篇,以Q版造型呈現夜櫻一家在日常生活中鬧出的爆笑小插曲。從任性的太陽到身懷絕技的夜櫻兄妹們,短短一分鐘內濃縮滿滿笑點與溫馨互動,獻給喜愛本傳的觀眾一份輕鬆詼諧的加映小點心。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PLMyQxaghEY1E8Nad_gUa1rYE8LNJpLqy-",
+  "youtubeSource": "ジャンプチャンネル(集英社Jump官方頻道)"
  },
  "178396": {
   "title": "Love Live!虹咲學園 學園偶像同好會 短篇動畫 第二季",
@@ -10312,7 +10725,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、音樂、日常",
   "desc": "作為BD特典收錄的三集全新動畫,延續『虹咲學園小情書』四格漫畫世界觀,以Q版造型呈現虹咲學園偶像社成員在校園與舞台背後的日常趣事。三段短篇補完正篇未播出的番外橋段,用輕快幽默的節奏呈現九位成員間逗趣又溫暖的日常互動,是粉絲不容錯過的加映彩蛋。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=oco9AvFfVaI",
+  "youtubeSource": "ラブライブ!シリーズ公式チャンネル(Love Live!系列官方頻道)"
  },
  "169766": {
   "title": "「月歌。」電影版 兔子王國",
@@ -10328,7 +10743,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、日常、科幻",
   "desc": "改編自《開往世界盡頭的列車》的迷你番外篇。因謎樣的「7G」電波影響,靜、撫子、麗美與晶四人竟意外變身成一列「汪汪列車」!在世界異變的荒誕背景下,四人以Q版可愛的姿態展開短篇趣味互動,為正篇末日公路旅程增添一抹輕鬆逗趣的調劑。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PL3ongWuaWwZOfMBtul-javjGubHSYMwKB",
+  "youtubeSource": "KADOKAWAanime(角川官方頻道)"
  },
  "175869": {
   "title": "小小哥吉拉的逆襲2",
@@ -10337,7 +10754,9 @@ const CN_OVERLAY = {
   "desc": "東寶特攝怪獸家族全員化身療癒可愛的Q版造型再度回歸!小哥吉拉與機械哥吉拉、摩斯拉、拉頓、王家撒龍等經典怪獸,在三分鐘的短篇喜劇中上演一場又一場逗趣鬧劇。詼諧演繹怪獸們日常相處的爆笑瞬間,獻給大小怪獸迷們的第二彈萌系特攝喜劇。",
   "year": 2024,
   "season": "SPRING",
-  "series": "chibi-godzilla"
+  "series": "chibi-godzilla",
+  "youtube": "https://www.youtube.com/playlist?list=PL66ukMnZUKAXkyCpxrGy7XLr-dC3aIRz2",
+  "youtubeSource": "ちびゴジラ公式チャンネル(東寶/Chibi Godzilla官方頻道)"
  },
  "176577": {
   "title": "SHIBUYA♡HACHI",
@@ -10346,7 +10765,9 @@ const CN_OVERLAY = {
   "desc": "以澀谷車站前忠犬八公銅像為原型的療癒動畫。化身為現代忠犬的哈奇在澀谷街頭甦醒,與個性各異的動物夥伴們展開悠閒又充滿溫度的日常生活。三分鐘短篇捕捉澀谷街角的四季風景與寵物視角下的城市溫情,是一部老少咸宜的療癒系日常小品。",
   "year": 2024,
   "season": "SPRING",
-  "series": "shibuya-hachi"
+  "series": "shibuya-hachi",
+  "youtube": "https://www.youtube.com/playlist?list=PLQyvkHBZA_xCcKQBmvhMen0dHLowRCN0n",
+  "youtubeSource": "「KING AMUSEMENT CREATIVE」公式チャンネル"
  },
  "177798": {
   "title": "Nyaaaanvy",
@@ -10354,7 +10775,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、動物、科幻",
   "desc": "一部圍繞貓咪與外星生物展開的無厘頭喜劇短篇,登場角色包括擬人化貓咪「Sora」與「Eve」、神秘企鵝及自稱「Lady Go」的貓咪。故事在天馬行空的設定中不斷上演令人捧腹的荒誕日常,以三分鐘的輕快節奏帶來滿滿笑點,是老少咸宜的療癒系動物喜劇小品。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PLG_6QZKrvoBwzov4aDq1vlcHcXrpmE8G1",
+  "youtubeSource": "シンエイアニメーション【公式】(Shin-Ei Animation官方)"
  },
  "176635": {
   "title": "YouTuNya 2",
@@ -10363,7 +10786,9 @@ const CN_OVERLAY = {
   "desc": "以貓咪化身YouTuber為題材的爆笑短篇動畫第二彈。主角貓咪「Nyaa」與夥伴「強貓」、「智貓」持續在頻道上大搞各種荒謬企劃,從日常生活到誇張整人橋段無所不拍。承接首季的無厘頭幽默,用兩分鐘的快節奏笑點惡搞現實網紅文化,是一部獻給貓派觀眾的搞笑療癒番。",
   "year": 2024,
   "season": "SPRING",
-  "series": "youtunya"
+  "series": "youtunya",
+  "youtube": "https://www.youtube.com/watch?v=RrtlDuvNayk",
+  "youtubeSource": "ユーチューニャー【公式】"
  },
  "183795": {
   "title": "芭蕾兔",
@@ -10379,7 +10804,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、日常、兒童",
   "desc": "改編自講談社同名繪本的三分鐘溫馨短篇。故事描述小刺蝟露奇卡與夥伴索爾在森林中共度的日常時光,以純樸細膩的畫風呈現大自然裡的小小冒險與友誼點滴。溫暖治癒的敘事步調,適合親子一同觀賞,感受繪本世界中純真美好的童趣時光。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=VAsq2_ewfKQ",
+  "youtubeSource": "講談社えほんチャンネル(Kodansha繪本官方頻道)"
  },
  "172965": {
   "title": "麵包超人電影版:細菌人與繪本的露露",
@@ -10396,7 +10823,9 @@ const CN_OVERLAY = {
   "genre": "音樂、喜劇、校園、樂團",
   "desc": "改編自同名跨媒體企劃漫畫的音樂題材短篇動畫。故事舞台設定在長野縣松本市,描述四名懷抱夢想的女高中生為了站上音樂祭舞台而組成樂團。從零開始練習、磨合默契到迎向舞台的過程中,四人的青春友情與音樂熱忱交織出熱血又溫暖的成長物語,每集八分鐘節奏明快,充滿元氣十足的樂團魂。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PLkAy04H6SulMUAqtF3e07Ws5MjIS5m7sQ",
+  "youtubeSource": "ガールズフィスト!!!! GT公式頻道"
  },
  "173249": {
   "title": "Kumarba",
@@ -10405,7 +10834,9 @@ const CN_OVERLAY = {
   "desc": "在網路虛擬世界中大鬧一場的搗蛋角色巴格林,讓化身可愛動物模樣的庫瑪巴與塔布里斯不得不挺身而出。這部全CG動畫短篇以輕快詼諧的節奏,描繪擬人化動物夥伴們聯手對抗虛擬亂源的爆笑冒險,是專為親子觀眾打造的動作喜劇小品。",
   "year": 2024,
   "season": "SPRING",
-  "series": "kumarba"
+  "series": "kumarba",
+  "youtube": "https://www.youtube.com/watch?v=vn_aC2a6JH8",
+  "youtubeSource": "クマーバチャンネル(官方,テレビ東京)"
  },
  "173250": {
   "title": "阿格歐與提姆",
@@ -10413,7 +10844,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、荒誕、動物擬人",
   "desc": "故事發生在一顆終年不見天日的奇特星球上,那裡住著兩隻低調生物阿格歐與提姆。牠們沒有什麼值得誇耀的長處,但那也沒關係——這部兩分鐘的無厘頭喜劇短篇,以荒誕又充滿冷幽默的日常互動,描繪這對平凡到近乎透明的搭檔,如何在毫不起眼的星球上過著自得其樂的每一天。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/playlist?list=PL58O4nPuExbCCXVDUgzyOCyMSWuZmVcLG",
+  "youtubeSource": "ShoPro アニメチャンネル(小学館集英社プロダクション官方)"
  },
  "200373": {
   "title": "大槌超神樂 大鎚",
@@ -10421,7 +10854,9 @@ const CN_OVERLAY = {
   "genre": "動作、機甲、奇幻、特攝",
   "desc": "隸屬大槌町公所觀光課的大槌美虎,正與同事們一同彩排城鎮宣傳活動,走訪源水川、小槌神社等在地景點。然而就在此時,一頭妖魔猛獸忽然來襲,美虎與夥伴們必須挺身而出,化身守護城鎮的超神樂英雄,與怪獸展開一場捍衛家鄉的特攝戰鬥。這是一部結合地方觀光宣傳與熱血特攝元素的原創短篇動畫。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=d6EYpOmqppc",
+  "youtubeSource": "大槌町観光交流協会(岩手縣大槌町官方,與DMM.com合作製作)"
  },
  "178125": {
   "title": "六郎大冒險",
@@ -10453,7 +10888,9 @@ const CN_OVERLAY = {
   "genre": "冒險、喜劇、奇幻",
   "desc": "長壽人氣系列動畫來到第八季!故事描繪一位有點笨拙、做事總是差強人意的魔王,率領著一群從「魔物派遣公司」調來支援的雜牌軍魔物們,在充滿奇幻色彩的世界裡執行各種荒謬任務。以職場派遣文化玩出反差萌梗,四分鐘一集的短篇節奏中塞滿無厘頭笑點,持續為系列粉絲帶來歡笑不斷的奇幻惡搞喜劇。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=9jvsLkw69UE",
+  "youtubeSource": "【公式】ポンクエチャンネル"
  },
  "185644": {
   "title": "屁屁偵探 第8季",
@@ -10471,7 +10908,9 @@ const CN_OVERLAY = {
   "desc": "改編自繪本的人氣兒童動畫特別篇,收錄第23至26集限時釋出的最新集數。故事舞台設定在一座專屬昆蟲們的奇幻島嶼,以擬人化的可愛蟲蟲角色描繪島上居民的日常生活與趣味互動。五分鐘一集的精巧節奏,搭配獨具風格的角色設計,呈現出充滿想像力又溫馨可愛的昆蟲世界。",
   "year": 2024,
   "season": "SPRING",
-  "series": "insect-land"
+  "series": "insect-land",
+  "youtube": "https://www.youtube.com/watch?v=ywcusmolEq0",
+  "youtubeSource": "【自然教育アニメ】インセクトランド【公式】"
  },
  "199488": {
   "title": "來自X星球的海獺",
@@ -10479,7 +10918,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、科幻",
   "desc": "日本現存的海獺僅有三隻,其中一隻其實是墜落地球、偽裝成海獺藏身於世的外星人。這隻智商超群的「海獺系」外星人每天都會接待各種前來諮詢煩惱的海洋生物,用意想不到的視角為牠們排憂解難。三分鐘的短篇科幻喜劇,以無厘頭又溫馨的互動,描繪一段跨物種、跨星球的療癒日常。",
   "year": 2024,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=YqzSrDmnTEs",
+  "youtubeSource": "星Xからのラッコ(作品自身官方頻道)"
  },
  "170913": {
   "title": "呻吟吧，亞當君",
@@ -10553,7 +10994,10 @@ const CN_OVERLAY = {
   "genre": "動作、奇幻、超能力、冒險",
   "desc": "韓國最弱獵人成振宇,在一場幾乎喪命的地下城任務後,意外獲得神秘系統賦予的成長能力,能藉由完成任務不斷提升自身戰力。歷劫歸來的他脫胎換骨,展開與其他獵人截然不同的升級之路,一步步從被瞧不起的底層邁向足以匹敵最強者的存在,並逐漸揭開地下城異變背後的驚人真相。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLxSscENEp7JjI7DcyhkL2Yv7zW_Fjnwww",
+  "youtubeSource": "Ani-One Asia",
+  "netflix": "https://www.netflix.com/tw/title/81749761"
  },
  "153518": {
   "title": "迷宮飯",
@@ -10561,7 +11005,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、冒險、喜劇、美食",
   "desc": "為了拯救被巨龍吞下肚的妹妹,劍士萊歐斯率領夥伴再度深入危機四伏的地下城,卻因盤纏見底、糧食耗盡而陷入絕境。一行人於是決定就地取材,將沿途遭遇的史萊姆、哥布林等魔物烹調成一道道獵奇料理果腹。在充滿危險與飢餓的迷宮裡,眾人邊吃邊闖,展開一場美味與冒險交織的奇特救援旅程。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81564899"
  },
  "146066": {
   "title": "歡迎來到實力至上主義的教室 第三季",
@@ -10570,7 +11015,10 @@ const CN_OVERLAY = {
   "desc": "在這所以徹底實力主義評鑑學生價值的高度育成高中中,始終隱藏真正實力的主角持續冷眼旁觀同儕間的角力與人性算計。隨著年級對抗與班級排名之爭愈演愈烈,各方角色暗藏的底牌與過去逐一浮上檯面,看似平靜的校園表象之下,一場攸關命運的心理博弈仍在悄然進行。",
   "year": 2024,
   "season": "WINTER",
-  "series": "youkoso-jitsuryoku"
+  "series": "youkoso-jitsuryoku",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfqaKn8JdnUc9WbNeapHHbpk",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/80193178"
  },
  "166610": {
   "title": "肌肉魔法使-MASHLE- 神覺者候補選拔試驗篇",
@@ -10578,7 +11026,8 @@ const CN_OVERLAY = {
   "genre": "喜劇、動作、奇幻、校園",
   "desc": "在魔法即一切的世界裡,唯獨靠鍛鍊肌肉存活至今的馬修,已在魔法學院站穩腳步。這回校方即將舉辦攸關魔法界未來局勢的「神覺者」候補選拔試驗。馬修一如既往地用純粹的拳頭代替咒語迎戰各路強敵,在荒誕爆笑的戰鬥中,不知不覺捲入超乎想像的巨大陰謀。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81685164"
  },
  "166794": {
   "title": "指尖相觸，戀戀不捨",
@@ -10587,7 +11036,9 @@ const CN_OVERLAY = {
   "desc": "天生失聰的大學生雪,平時透過手語與身邊親近的人溝通,過著平靜而封閉的生活。某天她在電車上邂逅熱愛旅行、通曉多國語言的青年,兩人因手語結下奇妙緣分,彼此的距離逐漸拉近。面對從未體驗過的心動與不安,雪鼓起勇氣一步步學習,如何跨越隔閡向對方傳達真實心意。",
   "year": 2024,
   "season": "WINTER",
-  "series": "yubisaki"
+  "series": "yubisaki",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfrQzT_JnuaFAPK-IqlsHwVL",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "137908": {
   "title": "治癒魔法的錯誤使用法",
@@ -10595,7 +11046,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、動作、異世界、黑暗",
   "desc": "平凡高中生被召喚至異世界,卻只獲得看似毫不起眼的治癒魔法,還因缺乏戰鬥價值而遭同伴拋棄於荒野等死。歷經瀕死絕境後,他發現這項魔法其實暗藏能扭轉戰局的驚人用法。從此他收起原本善良的一面,以復仇為念,將治癒魔法化為令敵人聞風喪膽的致命武器。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfppuE2khlptuGEyf-8a4BY9",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81747942"
  },
  "139518": {
   "title": "月光下的異世界之旅 第二季",
@@ -10604,7 +11058,10 @@ const CN_OVERLAY = {
   "desc": "因被誤判為「異物」而遭召喚至異世界的青年,憑藉月神的眷顧與亦師亦友的魔物夥伴逐漸站穩腳步,並建立起屬於自己的據點與勢力。第二季中,他率眾踏上更廣闊的大陸,面對各方強權與陰謀的接連試探,在守護同伴與拓展影響力之間,持續尋找真正屬於自己的容身之處。",
   "year": 2024,
   "season": "WINTER",
-  "series": "tsukikage-isekai"
+  "series": "tsukikage-isekai",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtSWP3f4Y1yJoXIrSR3yeLw0",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81474718"
  },
  "141821": {
   "title": "魔都精兵的奴隸",
@@ -10613,7 +11070,9 @@ const CN_OVERLAY = {
   "desc": "東京地底裂開通往異界的門扉後,唯有女性能覺醒戰力對抗湧出的魔物,男性則被要求擔任「奴隸」提供輔助支援。為了尋找失蹤的妹妹,青年主角加入精銳部隊,被迫與性格強悍各異的少女戰士們並肩作戰。在充滿羈絆、猜忌與衝突的異能戰場上,他逐漸摸索出屬於自己的存在意義。",
   "year": 2024,
   "season": "WINTER",
-  "series": "mato-seihei-slave"
+  "series": "mato-seihei-slave",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfrxl14ezgkXinTRaRLCiJlF",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "166216": {
   "title": "我內心的糟糕念頭 第二季",
@@ -10622,7 +11081,10 @@ const CN_OVERLAY = {
   "desc": "表面毒舌陰沉、內心卻藏滿各種妄想的少年,與開朗直率的啦啦隊女孩維持著一段誰也說不清的曖昧關係。第二季中兩人的距離持續拉近,面對彼此逐漸明朗的心意,以及旁人接連不斷的起鬨與試探,笨拙卻真摯的青春互動繼續上演,笑料與心動同步升溫。",
   "year": 2024,
   "season": "WINTER",
-  "series": "boku-no-kokoro-yabai"
+  "series": "boku-no-kokoro-yabai",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtQjuoamb6RRXZsY-nmLBEuI",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81788312"
  },
  "153658": {
   "title": "排球少年！！垃圾場的決戰",
@@ -10630,7 +11092,8 @@ const CN_OVERLAY = {
   "genre": "運動、劇場版、青春、戰鬥",
   "desc": "烏野高中排球隊在全國大賽賽場上,迎來實力堅強的宿敵音駒高中,這場被雙方戲稱為「垃圾場對決」的較量,集結了兩隊成長至今累積的所有實力與信念。選手們在速度、戰術與意志力交錯的白熱化攻防中全力以赴,透過這場關鍵之戰,見證彼此一路走來的蛻變與深厚羈絆。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81930066"
  },
  "155963": {
   "title": "北海道辣妹金古錐",
@@ -10647,7 +11110,10 @@ const CN_OVERLAY = {
   "desc": "因遭誣陷下毒而七度被處決的公爵千金,終於在第七次輪迴中放下拯救故國的執念,選擇遠嫁昔日的敵國,嫁給對方的皇太子。原以為能就此擺脫悲劇命運、展開自由自在的新婚生活,然而新的陰謀與過往未解的因果仍悄悄浮現,考驗著她這回重新選擇的人生道路。",
   "year": 2024,
   "season": "WINTER",
-  "series": "loop7-akuyaku-reijou"
+  "series": "loop7-akuyaku-reijou",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfpZS6hpToifwQ1jkL5Yy1MD",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81747897"
  },
  "147642": {
   "title": "非自願的不死冒險者",
@@ -10655,7 +11121,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、異世界、冒險、悲喜劇",
   "desc": "遭史萊姆偷襲致死的青年意外復活,成為擁有強大力量卻也人人喊打的不死族。為了在異世界活得像個「人」,他隱藏真實身分、以冒險者之姿四處歷練委託求生。途中他結識了願意接納自己真實面貌的少女,兩人在生與死的模糊界線之間,一同尋找屬於彼此的容身之處與存在意義。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=oukdTucstT4",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81746882"
  },
  "163076": {
   "title": "反派千金等級 99～我是隱藏頭目但不是魔王～",
@@ -10687,7 +11156,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、異世界、動作、爽片",
   "desc": "少年在異世界甦醒後,發現自己獲得了「即死」外掛能力,幾乎任何攻擊都能讓對手瞬間喪命。然而過於強大的力量,卻讓他難以真正融入他人,只能孤獨地與怪物廝殺求生。直到遇見同樣背負秘密的少女,他才逐漸找回與人相處的溫度,同時捲入牽動整個異世界局勢的巨大陰謀。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfqjd0hQuuEso6IG_tyXaOE5",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81910095"
  },
  "153818": {
   "title": "魔女與野獸",
@@ -10720,7 +11192,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、戀愛、超能力、校園",
   "desc": "擁有讀心異能、能看穿他人一切欲望與醜態的少年,早已對人心感到心灰意冷,直到遇見唯一無法被他窺探內心的神秘少女。她的存在如同一道無法破解的謎題,讓少年重新燃起對他人真心的好奇與渴望。兩人之間逐漸滋生的情感,交織著猜疑與救贖,譜出一段遊走善惡邊界的奇異戀曲。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtSiRva84Lg33o99akyNNj58",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "160389": {
   "title": "婚戒物語",
@@ -10729,7 +11203,9 @@ const CN_OVERLAY = {
   "desc": "青梅竹馬相伴長大的青年與來自異世界的公主,自幼便約定長大後要結為連理。多年後,少女為了拯救陷入存亡危機的故鄉,再度將他召喚至異世界,兩人終於得以完成婚約、結為夫妻。然而新婚生活尚未真正展開,他們便必須攜手迎戰威脅世界平衡的強大敵人,以夫妻之姿共同踏上守護家園的冒險旅程。",
   "year": 2024,
   "season": "WINTER",
-  "series": "kekkon-yubiwa-monogatari"
+  "series": "kekkon-yubiwa-monogatari",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtTY-T0z7AofAJGc9vDt9FaU",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "143866": {
   "title": "弱角友崎同學 2nd STAGE",
@@ -10737,7 +11213,9 @@ const CN_OVERLAY = {
   "genre": "校園、青春、戀愛、成長",
   "desc": "自認人生如同弱角、只能在格鬥遊戲中稱王的友崎文也,在日南葵的引導下逐漸學會與人相處、克服現實中的種種難關。第二季裡,友崎面對文化祭籌備、戀愛煩惱與更複雜的人際課題,持續摸索屬於自己的「人生攻略法」,在跌跌撞撞中一步步蛻變成更有勇氣面對真實自我的青年。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtRLC_f6mQR-zl6SNC8GeSBU",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "156891": {
   "title": "最弱魔物使開始了撿垃圾之旅。",
@@ -10745,7 +11223,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、異世界、治癒、冒險",
   "desc": "天賦「馴獸師」等級被判定為隊伍中最弱的少年,遭昔日夥伴無情拋棄於荒野。心灰意冷之餘,他一邊撿拾路邊看似無用的垃圾維生,一邊意外馴服了強大的稀有魔物成為夥伴。伴隨著撿到的同伴逐漸增多,少年重新踏上冒險旅程,在看似平凡的拾荒生活中,慢慢找回屬於自己的價值與歸屬。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtQeRI-LxvIXSW04gJzxMyOs",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81975380"
  },
  "161476": {
   "title": "異修羅",
@@ -10762,7 +11243,10 @@ const CN_OVERLAY = {
   "genre": "科幻、動作、機器人",
   "desc": "近未來的火星殖民地上，人造人「露綺」與夥伴組成的獵人小隊，專門追緝失控叛逃的仿生人。一場任務意外揭開她自身出身的祕密，讓她被迫在服從造物主的命運與追尋自我意志之間，展開一場關乎存在意義的孤獨戰鬥。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLxSscENEp7Jix8lSA4pVU_gn3TbjTg1Pb",
+  "youtubeSource": "Ani-One Asia",
+  "netflix": "https://www.netflix.com/tw/title/81753309"
  },
  "165254": {
   "title": "BUCCHIGIRI?!",
@@ -10778,7 +11262,10 @@ const CN_OVERLAY = {
   "genre": "異世界、奇幻、日常",
   "desc": "平凡上班族佐佐木收留了一隻會說話的文鳥「小嗶」，卻不知牠其實是異世界中赫赫有名的傳說大魔法師轉世而來。兩人一鳥的古怪同居生活裡，日常瑣事與跨界奇幻冒險交織上演，處處是意想不到的溫馨與爆笑瞬間。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL12UaAf_xzfq1-0xiyc0A3aWGv8g6Sg_3",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81768306"
  },
  "162144": {
   "title": "女王的手術刀",
@@ -10794,7 +11281,9 @@ const CN_OVERLAY = {
   "genre": "特攝、喜劇、日常、療癒",
   "desc": "平時在特攝節目裡與正義英雄殊死纏鬥的邪惡首領，一到休假日就搖身一變，成了認真排隊買甜點、悉心照顧鄰居孩童的溫柔大叔。反差萌十足的日常小品，用平凡假日點滴，勾勒出「反派」不為人知的溫暖一面。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=z8UXhoP-zEY",
+  "youtubeSource": "曼迪Mighty TV動畫頻道"
  },
  "169935": {
   "title": "最強肉盾的迷宮攻略～擁有稀少技能體力9999的肉盾，被勇者隊伍辭退了～",
@@ -10802,7 +11291,10 @@ const CN_OVERLAY = {
   "genre": "異世界、奇幻、冒險",
   "desc": "身兼坦克職責、擁有罕見高體力技能的冒險者，卻因隊伍誤解其價值而慘遭勇者一行人開除。心灰意冷之際，他決定憑一己之力挑戰迷宮深處，這才發現自己被低估已久的防禦與續戰能力，足以顛覆整個攻略界的常識。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtQudA2peqHtz0RdO9uiPvrN",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81765108"
  },
  "167087": {
   "title": "如果30歲還是處男，似乎就能成為魔法師",
@@ -10811,7 +11303,8 @@ const CN_OVERLAY = {
   "desc": "平凡上班族在三十歲生日那天，突然獲得只要碰觸他人就能讀出心聲的神祕魔法。原以為只是個麻煩體質，卻意外聽見了一直默默守護在身邊、看似高冷的男同事內心深藏多年的真摯情意，兩人的關係也悄悄起了變化。",
   "year": 2024,
   "season": "WINTER",
-  "series": "30sai-doutei-mahoutsukai"
+  "series": "30sai-doutei-mahoutsukai",
+  "netflix": "https://www.netflix.com/tw/title/81750730"
  },
  "166522": {
   "title": "公主殿下，「拷問」的時間到了",
@@ -10820,7 +11313,9 @@ const CN_OVERLAY = {
   "desc": "本應堅毅不屈、身經百戰的國王軍公主，卻在戰爭中遭魔王軍俘虜，被囚禁於魔王城中。為了逼問出軍事機密，魔王軍對她展開意想不到的「拷問」——用一道道精緻美食誘惑她開口。任憑公主如何咬牙硬撐，終究扛不住眼前的珍饈美饌，一場圍繞著美食與逼供交織、荒謬又溫馨的攻防戰就此展開。",
   "year": 2024,
   "season": "WINTER",
-  "series": "hime-goumon"
+  "series": "hime-goumon",
+  "youtube": "https://www.youtube.com/watch?v=XWhpotCBfHw",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "152072": {
   "title": "為了在異世界也能摸摸毛茸茸努力",
@@ -10836,7 +11331,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、動作、妖怪、劇情",
   "desc": "在妖狐與人類彼此忌憚、暗潮洶湧的時代，半妖少年與夥伴們一同踏上旅途，剷除為禍人間的凶惡妖物。隨著旅程深入，他們逐漸揭開人與妖之間積怨已久的悲劇真相，也重新思考共存這條路究竟該何去何從。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=pZPrMy6Me-A",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81746611"
  },
  "167486": {
   "title": "我的幸福婚約 特別篇",
@@ -10853,7 +11351,10 @@ const CN_OVERLAY = {
   "genre": "奇幻、動作、短篇",
   "desc": "以飛龍與武者的殊死對決為核心的奇幻短篇作品，在短短篇幅中濃縮了濃烈的忠義與信念糾葛。武者背負著沉重的使命與情義，在近乎地獄般嚴苛的試煉中與凶猛飛龍正面交鋒，呈現出極致壓縮的熱血戰鬥美學。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLxSscENEp7Jgvj8n6uIe8ZrDDoC8Sr6wz",
+  "youtubeSource": "Ani-One Asia",
+  "netflix": "https://www.netflix.com/tw/title/81733654"
  },
  "155645": {
   "title": "她來自煩星 第二季",
@@ -10862,7 +11363,9 @@ const CN_OVERLAY = {
   "desc": "外星美少女拉姆與花心又倒楣的高中生阿當之間，永無止境的鬧劇戀愛持續延燒。新一輪的競爭情敵、荒誕離奇的外星騷動與友引町居民們的插科打諢接連登場，經典昭和喜劇的無厘頭魅力，在新作畫下持續閃耀。",
   "year": 2024,
   "season": "WINTER",
-  "series": "urusei-yatsura-2022"
+  "series": "urusei-yatsura-2022",
+  "youtube": "https://www.youtube.com/playlist?list=PLC18xlbCdwtRB3v2ricyQUO6H3irpqrdn",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "170935": {
   "title": "GREAT PRETENDER：razbliuto",
@@ -10938,7 +11441,8 @@ const CN_OVERLAY = {
   "desc": "改編自中國戰國時代史詩的第五季，講述秦國名將信率軍投入更加慘烈的統一戰爭。面對強敵環伺與瞬息萬變的戰局，將士們的謀略、羈絆與犧牲一一浮現，磅礡壯闊地描繪出邁向天下一統之路的血淚與榮耀。",
   "year": 2024,
   "season": "WINTER",
-  "series": "kingdom"
+  "series": "kingdom",
+  "netflix": "https://www.netflix.com/tw/title/80172949"
  },
  "147850": {
   "title": "通靈王 Flowers",
@@ -10946,7 +11450,8 @@ const CN_OVERLAY = {
   "genre": "奇幻、動作、劇情",
   "desc": "故事發生在通靈王大戰落幕的多年之後，聚焦通靈王葉與安娜之子花所面臨的全新試煉。背負著父母輩傳奇戰役的巨大陰影，這名少年必須在通靈能力與自我認同的摸索中，走出一條屬於自己的道路。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81749969"
  },
  "171026": {
   "title": "派對咖孔明 Road to Summer Sonia",
@@ -10979,7 +11484,8 @@ const CN_OVERLAY = {
   "genre": "動作、劇情、機甲、科幻、戀愛",
   "desc": "時值宇宙曆C.E.75年，「命運計畫」瓦解兩年後，自然人與強化人的對立依舊未平，地球各地獨立運動風起雲湧，「藍色宇宙」的攻勢也日益猛烈。基拉·大和等人加入新成立的和平監督機構「COMPASS」，卻在新興勢力「FOUNDATION」提出聯合行動後，被迫再次拿起武器，於理想與宿命間做出抉擇。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "netflix": "https://www.netflix.com/tw/title/81747912"
  },
  "181970": {
   "title": "傷物語 -暦Vamp-",
@@ -11003,7 +11509,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、魔法少女",
   "desc": "在人與動物共同生活的「動物鎮」，喜愛動物的少女伊呂波與愛犬小麥感情深厚。某日神秘怪物「加魯加魯」現身作亂，小麥為保護伊呂波挺身變身為人形光之美少女，兩人自此攜手對抗怪物，拯救被奪去元氣的動物們，找回小廣場的和平。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLo_HY74ov2N1M2Qv6t-EwMizVIymc33GW",
+  "youtubeSource": "YOYOTV(東森幼幼台)"
  },
  "162842": {
   "title": "狩火之王 第二季",
@@ -11028,7 +11536,9 @@ const CN_OVERLAY = {
   "genre": "喜劇",
   "desc": "北海道薄野鬧區附近一間小酒館「Basue」，由古怪的老闆娘巴須江與後輩明美經營，天天高朋滿座，充滿各路奇葩常客與過路客的荒唐故事。每晚的杯觥交錯間，笑料與吐槽齊飛，是一部惡搞百科式的成人向爆笑喜劇。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLxSscENEp7JhOhIGAfgtgEeeIKiUOY-GC",
+  "youtubeSource": "Ani-One Asia"
  },
  "167140": {
   "title": "英雄教室 OVA",
@@ -11045,7 +11555,9 @@ const CN_OVERLAY = {
   "genre": "動作、奇幻",
   "desc": "為慶祝《遊戲王》官方集換式卡牌遊戲二十五週年推出的紀念短片，以華麗全動畫呈現黑魔導女孩等經典卡片怪獸的英姿，透過幾乎無對白的短篇故事，向長年支持這款卡片遊戲的玩家們致敬。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL6roPjQtdsM4MbkObRRYcOx6ALU5ApobD",
+  "youtubeSource": "遊戯王OCGチャンネル(Konami官方頻道)"
  },
  "144770": {
   "title": "BLOODY ESCAPE：地獄的逃走劇",
@@ -11062,7 +11574,9 @@ const CN_OVERLAY = {
   "desc": "六張擁有改變命運之力的神秘卡牌「六欲」現世，選中六位鬥士展開「宿命對決」，勝者能實現任何願望。少年明堂晶奈為了幫助體弱多病的妹妹圓夢，毅然投身這場攸關生死的卡牌對決，與強敵一次次交鋒。",
   "year": 2024,
   "season": "WINTER",
-  "series": "cardfight-divinez-deluxe"
+  "series": "cardfight-divinez-deluxe",
+  "youtube": "https://www.youtube.com/watch?v=-h6PW2onvQs",
+  "youtubeSource": "CARDFIGHTVanguard(Bushiroad官方頻道)"
  },
  "170953": {
   "title": "闇芝居 第十二季",
@@ -11071,7 +11585,9 @@ const CN_OVERLAY = {
   "desc": "以紙芝居（連環畫劇）形式呈現的短篇怪談集第十二季，延續系列一貫的詭譎氛圍，每集僅有數分鐘卻能營造毛骨悚然的驚悚感，透過一則則獨立的都市傳說與怪異事件，帶領觀眾窺見日常縫隙中潛藏的異界。",
   "year": 2024,
   "season": "WINTER",
-  "series": "yamishibai"
+  "series": "yamishibai",
+  "youtube": "https://www.youtube.com/watch?v=7LZTHHPLO2Y",
+  "youtubeSource": "闇芝居チャンネル(日本製作委員會官方頻道)"
  },
  "166976": {
   "title": "電影哆啦A夢：大雄的地球交響樂",
@@ -11087,7 +11603,9 @@ const CN_OVERLAY = {
   "genre": "動作、冒險、奇幻、機甲、戀愛、科幻",
   "desc": "麥當勞攜手動畫工作室Pierrot打造的官方短篇動畫，以「WcDonald's醬」與麥克雞塊為題，分成動作、戀愛、機甲、奇幻四種風格各異的單元故事，用誇張逗趣的方式向多種動畫類型致敬，呈現一場獻給沾醬的荒謬冒險。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=alp-u4EFLAc",
+  "youtubeSource": "McDonald's官方頻道"
  },
  "172966": {
   "title": "超普通縣 千葉傳說",
@@ -11095,7 +11613,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、奇幻",
   "desc": "步調悠閒的千葉縣裡，平凡無奇的女高中生鴨川阿子過著再普通不過的日子。誰知看似無聊的千葉日常，卻在阿子身邊接連掀起一場場荒誕爆笑的騷動，把「普通」活生生演成一齣誇張離奇的鬧劇。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=FGE-RbbS9yA",
+  "youtubeSource": "千葉のテガちゃんネル(官方製作委員會頻道)"
  },
  "174417": {
   "title": "指尖相觸，戀戀不捨：迷你動畫",
@@ -11112,7 +11632,9 @@ const CN_OVERLAY = {
   "genre": "日常、奇幻",
   "desc": "京都動畫與宇治市攜手打造的觀光宣傳動畫，以《源氏物語》「宇治十帖」的意象為靈感，透過幾乎無對白的唯美畫面，帶領觀眾漫遊宇治的四季街景與茶鄉風情，訴說這座城市自古流傳至今、屬於每個人的故事。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=uuJuoXmwkp8",
+  "youtubeSource": "京アニチャンネル(京都動畫官方頻道)"
  },
  "184369": {
   "title": "名偵探柯南 vs. 怪盜基德",
@@ -11128,7 +11650,9 @@ const CN_OVERLAY = {
   "genre": "劇情、音樂",
   "desc": "改編自手機遊戲劇情篇章「Checkmate」的網路動畫新作，聚焦月永雷歐、瀨名泉、朔間凛月、鳴上嵐等偶像成員之間錯綜複雜的過去羈絆，透過全CG動畫重新演繹這段左右各人命運的關鍵劇情。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=DpE1pzGybSg",
+  "youtubeSource": "あんスタチャンネル(Ensemble Stars官方頻道)"
  },
  "184373": {
   "title": "éphémère",
@@ -11136,7 +11660,9 @@ const CN_OVERLAY = {
   "genre": "科幻、日常、百合",
   "desc": "宇多獨自在天王星的旅館工作，總覺得自己與旁人格格不入，閒暇時只愛獨自創作或到咖啡廳發呆。某天她收到象徵新生活的「未來車票」，仍照常過日子。隨著慶祝天王星與海王星最接近的「星祭」將至，她邂逅來自海王星的人氣網紅寶拉，兩人日漸親近，也讓宇多對人生做出重大抉擇。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=5R64pAPUZmk",
+  "youtubeSource": "qtonagi(原作繪師本人官方頻道)"
  },
  "174749": {
   "title": "初次兩人單獨旅行",
@@ -11144,7 +11670,9 @@ const CN_OVERLAY = {
   "genre": "音樂、日常",
   "desc": "隨男子偶像團體LIPxLIP專輯限定版附贈的短篇動畫，描繪兩位成員少年染谷雄次郎與柴崎藍蔵難得褪下偶像身分，展開一場只屬於他們倆的小旅行，透過輕鬆逗趣的互動，呈現這對搭檔平時鮮少展現的真實一面。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=nHPcu4HT2mE",
+  "youtubeSource": "HoneyWorks OFFICIAL"
  },
  "175033": {
   "title": "現在，你進入未來了嗎。",
@@ -11152,7 +11680,9 @@ const CN_OVERLAY = {
   "genre": "原創、社會寫實、勵志、短篇",
   "desc": "京瓷企業為Z世代打造的原創動畫第三彈。對未來感到茫然的主角在人生道路上徬徨不安，巧遇一位AI研究員與協助職涯抉擇的人工智慧，逐漸體悟到累積至今的自身經歷才是描繪未來的關鍵，最終鼓起勇氣相信只有自己才能構築屬於自己的明天，獻給正為出路苦惱的求職世代。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=kBebzg6F7IQ",
+  "youtubeSource": "京瓷(KYOCERA)官方"
  },
  "174666": {
   "title": "Science SARU×MBS 原創短篇動畫大作戰！",
@@ -11168,7 +11698,9 @@ const CN_OVERLAY = {
   "genre": "短篇、日常、動物、地方宣傳",
   "desc": "人氣動物系網漫改編的療癒短篇，講述人類與動物和睦共存的小鎮裡，認真呆萌的小鯊魚與街坊居民的日常趣事。此篇與千葉縣新開發的鄉土料理「黑蒜油燉海鮮」合作，以聯名插畫與宣傳短片形式登場，盼藉可愛角色帶動地方美食知名度。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=lGLnVHMMhLo",
+  "youtubeSource": "アニメ『おでかけ子ザメ』チャンネル(官方製作頻道)"
  },
  "186764": {
   "title": "SINoALICE 一番最後的故事",
@@ -11192,7 +11724,9 @@ const CN_OVERLAY = {
   "genre": "兒童、科普、動作、格鬥",
   "desc": "改編自人氣科普系列「異種最強王圖鑑」，舞台設定在神秘的「最強島」，集結恐龍、絕種生物、昆蟲與各種動物，為爭奪「最強王」寶座展開一場場擬真對決。作品透過趣味格鬥形式向小朋友介紹各種生物的生態習性與戰鬥能力，寓教於樂，是深受親子觀眾喜愛的晨間節目。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=NVDlV_5TTCM",
+  "youtubeSource": "最強王図鑑~The Ultimate Tournament~【公式】(@saikyooh_anime)"
  },
  "177062": {
   "title": "輪迴七次的惡役千金，在前敵國享受隨心所欲的新婚生活 迷你動畫",
@@ -11201,7 +11735,9 @@ const CN_OVERLAY = {
   "desc": "電視動畫官方特別企劃的SD角色迷你短篇，由原作者親自撰寫全新小故事，漫畫版繪師操刀簡化畫風的角色設計，呈現本篇未能收錄的日常小插曲。已經歷七次人生輪迴、下定決心悠閒活到老的公爵千金，與前世的殺夫仇人在敵國展開的新婚生活中，還藏著哪些不為人知的甜蜜瞬間。",
   "year": 2024,
   "season": "WINTER",
-  "series": "loop7-akuyaku-reijou"
+  "series": "loop7-akuyaku-reijou",
+  "youtube": "https://www.youtube.com/playlist?list=PLgLUlmZU3HPxH8dG0pOUSDDAvXYUb8Btp",
+  "youtubeSource": "オーバーラップチャンネル(輕小說原作出版社OVERLAP官方頻道)"
  },
  "169291": {
   "title": "貼貼走吧！小狗",
@@ -11217,7 +11753,9 @@ const CN_OVERLAY = {
   "genre": "奇幻、醫療、轉生、迷你動畫",
   "desc": "電視動畫官方推出的番外迷你劇場，以簡化畫風呈現本篇之外的輕鬆日常橋段。曾是遭處決的暴虐皇后、如今轉世成為天才外科醫師的女主角，在忙碌行醫之餘與同伴們鬥嘴玩鬧，展現本篇緊湊劇情中難得一見的幽默與人情味，作為正片播畢後的加碼小驚喜播出。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL3ongWuaWwZOmg9lSXiw5viD2m_Bg-tiF",
+  "youtubeSource": "KADOKAWAanime(角川官方動畫頻道)"
  },
  "174128": {
   "title": "倉鼠小福丸",
@@ -11225,7 +11763,9 @@ const CN_OVERLAY = {
   "genre": "短篇、日常、動物、療癒",
   "desc": "改編自社群平台高人氣四格漫畫，紀念連載三週年推出的短篇動畫。故事描寫住在地板隔音不佳老房子裡、外表可愛卻常常有點衰的倉鼠小福丸，牠總在雞毛蒜皮的小事上鬧出笑話，卻又意外治癒人心，以輕鬆詼諧的步調記錄下這隻倉鼠啼笑皆非的每一天。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL58O4nPuExbCRFLQk9o9hJcBrolkx4HRn",
+  "youtubeSource": "ShoProアニメチャンネル(集英社/Shogakukan-Shueisha Production官方頻道)"
  },
  "177061": {
   "title": "女王的手術刀's 診療筆記",
@@ -11233,7 +11773,9 @@ const CN_OVERLAY = {
   "genre": "醫療、生活知識、迷你動畫、奇幻",
   "desc": "與電視動畫同步推出的衛教型迷你單元，由女主角化身親切醫師，針對受傷急救、手腳冰冷、睡眠品質等日常常見的健康困擾，以淺顯易懂的方式提供實用小知識與保健秘訣，寓教於樂地將劇中角色的專業設定延伸到觀眾的現實生活之中。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=IcCwh6AZqGQ",
+  "youtubeSource": "KADOKAWAanime(角川官方動畫頻道)"
  },
  "172016": {
   "title": "屁屁偵探：再見親愛的夥伴，屁屁啊",
@@ -11257,7 +11799,9 @@ const CN_OVERLAY = {
   "genre": "諷刺喜劇、魔法少女、深夜短篇、社會諷刺",
   "desc": "由YouTube短篇動畫創作者打造的諷刺系深夜短篇。化身魔法少女的主角愛子，專門對付現實社會中層出不窮的外遇、職權騷擾、違反公司規範等容易引發網路公審的醜聞事件，以誇張荒謬又辛辣的手法揭穿人性百態，首播即拿下該時段收視率第一。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLnqUx0MOSlp9y7D8Z8-_ztsi1nIT3p2SP",
+  "youtubeSource": "X Anime(官方製作頻道,@xanime_Official)"
  },
  "174912": {
   "title": "頑強青蛙就是那樣",
@@ -11265,7 +11809,9 @@ const CN_OVERLAY = {
   "genre": "喜劇、短篇、動物、地方方言",
   "desc": "改編自1970年代國民漫畫《頑強青蛙》的令和新版短篇喜劇，由主角廣志與被拍扁黏在他背上、性格豪爽的青蛙夥伴全程以關西腔互相吐槽拌嘴。作品延續原作插科打諢的漫才式幽默，用道地又親切的方言節奏，重新演繹這對難分難捨主僕組合的爆笑日常。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLaWGw0t9iqLsNfnx8AMZrRCjDBfXRV2_N",
+  "youtubeSource": "【公式】スキマノアニメ Produced by au(au電信官方短篇動畫品牌頻道)"
  },
  "172976": {
   "title": "電影版 巧虎 奇蹟島的七色康乃馨",
@@ -11282,7 +11828,9 @@ const CN_OVERLAY = {
   "desc": "江戶時代曾預言瘟疫、拯救世人的妖怪「阿瑪比埃」，搖身一變成為令和亂世中行事誇張搞怪的公主角色，持續透過荒誕不經的行動替市井小民排憂解難。第三季延續透過線上試鏡選出客串聲優的參與式企劃特色，集結藝人、歌手與網路創作者共同演出，於地方電視台播出。",
   "year": 2024,
   "season": "WINTER",
-  "series": "amabie-hime"
+  "series": "amabie-hime",
+  "youtube": "https://www.youtube.com/watch?v=dDrlGKM-aeo",
+  "youtubeSource": "炸裂!あまびえ姫。公式チャンネル"
  },
  "177148": {
   "title": "生物先生 綿羊篇",
@@ -11290,7 +11838,9 @@ const CN_OVERLAY = {
   "genre": "兒童、科普、短篇、動物",
   "desc": "科普短篇系列番外篇。渴望變成生物的少年與想幫牠實現願望的狗狗，這回一起認識溫馴親人卻也暗藏生存智慧的綿羊，透過牠們群居生活、辨識同伴與抵禦天敵的方式，以輕鬆逗趣的口吻向小朋友介紹綿羊鮮為人知的生態知識與有趣習性。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PL08XceYdmHetIn7MrJy5cdHqt2Y1v61MD",
+  "youtubeSource": "TAB Channel/タブ【Toei Animation Beyond】(東映動畫官方頻道)"
  },
  "199478": {
   "title": "我孫子物語！！～超能力少女與忍者～",
@@ -11298,7 +11848,9 @@ const CN_OVERLAY = {
   "genre": "地方宣傳、奇幻、冒險、原創",
   "desc": "由千葉縣我孫子市商店會與市民團體攜手打造的地方原創動畫。擁有超能力的國中女生，與為尋找神秘卷軸而來到我孫子的菜鳥忍者相遇，兩人因緣際會攜手冒險，途中穿插我孫子在地知名景點與風土人情，盼藉輕鬆逗趣的故事讓更多人認識這座城市的魅力。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLjA4aVnZl7mhIczHor5iIMuSLXqln25Ux",
+  "youtubeSource": "千葉のテガちゃんネル(千葉/我孫子地區宣傳官方頻道)"
  },
  "175513": {
   "title": "熊貓變裝體操",
@@ -11306,7 +11858,9 @@ const CN_OVERLAY = {
   "genre": "幼兒、教育、CG動畫、體操",
   "desc": "改編自累計發行33萬冊的人氣繪本系列，首度推出3DCG動畫版。圓滾滾又軟綿綿的熊貓，隨著輕快節奏一下扭成香蕉的彎曲模樣、一下化身鬱金香輕輕搖擺、一下滾成飯糰咕嚕咕嚕轉動，邀請螢幕前的小朋友一起跟著動起來，是專為幼兒設計、寓教於樂的親子律動短片。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLvAzALYYO6sd6eByBU5V-y1QXFkqHAa8q",
+  "youtubeSource": "とうあにパーク【東映アニメーション公式キッズチャンネル】"
  },
  "175047": {
   "title": "聲優與夜遊 ANIMATION 生田桃！索比",
@@ -11314,7 +11868,9 @@ const CN_OVERLAY = {
   "genre": "綜藝衍生、日常、喜劇、短篇",
   "desc": "改編自人氣聲優深夜節目的短篇動畫企劃。描繪節目吉祥角色索比，在牠所居住的妖精之國裡與夥伴們相處的日常點滴，登場的夥伴角色皆由節目主持群聲優們發想創作，並各自為自己構思的角色獻聲演出，是節目粉絲不容錯過的周邊延伸企劃。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/playlist?list=PLmtr8E9BnUct_U_HtaPE_h7U9RlxYRif9",
+  "youtubeSource": "ABEMA 声優と夜あそび【公式】"
  },
  "204506": {
   "title": "回來了！Synduality科學講座",
@@ -11322,7 +11878,9 @@ const CN_OVERLAY = {
   "genre": "科幻、機甲、科普短篇、衍生迷你動畫",
   "desc": "電視動畫官方推出的Q版角色科普短篇特別篇，這回由劇中兩位配角擔任講師，以簡化可愛的造型向觀眾解說作品世界觀中的專有名詞與設定概念，用輕鬆詼諧的講堂形式，幫助觀眾更深入理解這個描繪人類與AI夥伴共同求生的近未來世界。",
   "year": 2024,
-  "season": "WINTER"
+  "season": "WINTER",
+  "youtube": "https://www.youtube.com/watch?v=ZrbnZbO4QHc",
+  "youtubeSource": "バンダイナムコフィルムワークス チャンネル(官方製作委員會頻道)"
  },
  "206353": {
   "title": "箱魨與水俁的海",
@@ -24653,7 +25211,27 @@ async function loadCurrentSeason(){
 }
 
 // ---------- 導覽 ----------
+/* 踩過的坑(2026-09-04):如果目前正開著詳情頁,使用者不是用「‹ 返回列表」按鈕或瀏覽器
+   上一頁離開,而是直接點側邊欄切到別的分頁(例如季度瀏覽/首頁),setTab()過去只會把
+   activeDetailId歸零、完全沒動到瀏覽器history——但openDetail()先前幫這筆詳情頁push
+   過的history紀錄「原地不動」變成孤兒。使用者之後在別的地方(可能完全不同季度)又點開
+   一部新的詳情頁,openDetail()看到activeDetailId是null,以為是全新一輪,depth從1算,
+   直接把新紀錄疊在那筆孤兒紀錄上面。等使用者改用瀏覽器真正的「上一頁」/滑動返回手勢,
+   會先退回那筆孤兒紀錄,顯示成「返回上一頁卻跳到之前看過的不相干作品」的怪異bug
+   (例如季度瀏覽點開A作品→側欄切分頁離開(孤兒)→季度瀏覽點開B作品→按瀏覽器上一頁
+   跳到A而不是列表)。
+   修法:setTab()切分頁前,如果偵測到目前正開著詳情頁,先比照backToGrid()的做法把
+   那層(或那幾層,相關動畫連續深入時depth>1)history也go(-depth)清掉,讓history堆疊
+   隨時跟app狀態同步、不留孤兒紀錄。history.go()是非同步的,稍後才會補一次popstate
+   (state會是null),用suppressNextPopstate旗標吃掉那次補發的popstate,避免它的
+   else分支呼叫backToGrid()、用「進入詳情頁前的returnToTab」蓋掉使用者剛剛點的分頁。 */
+let suppressNextPopstate = false;
 function setTab(tab){
+  if(activeDetailId != null){
+    navSeq++; // 讓還卡在ensureSeasonLoadedFor await中的舊呼叫作廢,理由同backToGrid()。
+    const depth = (history.state && history.state.depth) || 0;
+    if(depth > 0){ suppressNextPopstate = true; history.go(-depth); }
+  }
   activeTab = tab; activeDetailId = null;
   document.querySelectorAll('.nav-item').forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
   if(tab==='home' && homeSection==='popular') ensurePopularLoaded();
@@ -25158,6 +25736,7 @@ function backToGrid(){
    連續點了跨季度的兩部作品),沒有重新切季度/確保資料已載入的話,findMedia() 會找不到
    資料顯示「找不到這筆資料」——所以這裡要跟 openDetail 一樣呼叫 ensureSeasonLoadedFor。 */
 window.addEventListener('popstate', async (e) => {
+  if(suppressNextPopstate){ suppressNextPopstate = false; return; } // 見setTab()註解
   const mySeq = ++navSeq;
   const state = e.state;
   if(state && state.activeDetailId != null){
@@ -25634,6 +26213,47 @@ if(location.protocol !== 'file:'){
   const cs = document.getElementById('conn-status');
   if(cs) cs.style.display = 'none';
 }
+
+/* 手機版導覽列「往下捲自動收起、往上捲自動浮現」(2026-09-04新增)。
+   header改成position:fixed後,量測它實際渲染高度寫進--mobile-hdr-h這個CSS變數,
+   .app的padding-top靠這個變數補償(不然main的內容會被飄浮的header蓋住一截)。
+   高度理論上很穩定(nav-item文字固定、auth-status文字有max-width+ellipsis不會
+   換行撐高),但登入狀態文字改變/字型載入/視窗轉向時保守起見還是重新量一次,
+   用ResizeObserver盯著.sidebar本身,比在多個事件裡各自呼叫一次更不會漏掉。 */
+(function initMobileHeaderAutoHide(){
+  const sidebar = document.querySelector('.sidebar');
+  if(!sidebar) return;
+  function syncHeight(){
+    document.documentElement.style.setProperty('--mobile-hdr-h', sidebar.offsetHeight + 'px');
+  }
+  syncHeight();
+  if(window.ResizeObserver){ new ResizeObserver(syncHeight).observe(sidebar); }
+  else { window.addEventListener('resize', syncHeight); } // 沒有ResizeObserver的舊瀏覽器退而求其次
+
+  let lastY = window.scrollY;
+  let ticking = false;
+  // 往上滑一點點(小於門檻)不算「使用者想找導覽列」,避免手抖/慣性微幅回彈就一直閃現;
+  // 往下滑則不論幅度大小,只要方向對就立刻收起,寧可反應快一點。
+  const SHOW_THRESHOLD = 6;
+  function onScroll(){
+    const y = window.scrollY;
+    const delta = y - lastY;
+    if(y <= 0){
+      sidebar.classList.remove('nav-hidden'); // 捲到最頂端一律顯示,不要卡在收起狀態
+    } else if(delta > 0){
+      sidebar.classList.add('nav-hidden');
+    } else if(delta < -SHOW_THRESHOLD){
+      sidebar.classList.remove('nav-hidden');
+    }
+    lastY = y;
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(onScroll);
+  }, {passive:true});
+})();
 </script>
 </body>
 </html>
