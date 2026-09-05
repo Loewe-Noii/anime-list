@@ -65,9 +65,10 @@
   @media (max-width:768px){ .app{grid-template-columns:1fr;} }
   .sidebar{border-right:1px solid var(--border);padding:22px 14px;display:flex;flex-direction:column;gap:22px;}
   @media (max-width:768px){
-    /* 手機版header分兩排:第一排「站名＋帳號登入狀態」左右並排(brand靠左、
-       conn-status/auth-status用margin-left:auto推到最右邊),第二排是導覽列(橫向捲動)。
-       用flex-wrap+讓.nav的flex-basis:100%強制換行,不用改動HTML結構順序。
+    /* 手機版header分三排:第一排「站名＋帳號登入狀態」左右並排(brand靠左、
+       conn-status/auth-status用margin-left:auto推到最右邊),第二排是導覽列(橫向捲動),
+       第三排是全站搜尋框(.nav-search-box,2026-09-05新增)。
+       用flex-wrap+讓.nav/.nav-search-box的flex-basis:100%強制換行,不用改動HTML結構順序。
        (踩過的坑:.nav以外的子元素不能有min-width:auto撐開整排,不然grid欄位會被撐寬
        導致整頁被瀏覽器縮小顯示——這裡沿用外層.app grid已修過的min-width:0防呆。)
        【2026-09-04新增】手機版往下捲動後這排header會被捲出畫面,想切分頁要先滑回最上面,
@@ -90,6 +91,7 @@
     .conn-status{order:2;flex:none;}
     .auth-status{order:3;flex:none;margin-left:auto;}
     .nav{order:4;flex:none;flex-basis:100%;width:100%;min-width:0;overflow-x:auto;}
+    .nav-search-box{order:5;flex:none;flex-basis:100%;width:100%;margin-top:2px;}
   }
   .brand h1{font-size:1.15rem;font-weight:800;letter-spacing:.02em;}
   .brand p{margin:4px 0 0;font-size:.72rem;color:var(--fg-dim);}
@@ -133,8 +135,13 @@
   /* ---- 工具列 ---- */
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
   .search-box{position:relative;max-width:400px;flex:1 1 240px;}
-  .search-box svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--fg-dim);fill:none;stroke-width:1.8;}
-  .search-box input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);}
+  /* .nav-search-box 是側邊欄(手機版會變成可收合的浮動header)裡的全站搜尋入口,
+     跟.search-box共用外觀(圖示+輸入框樣式),但不能共用.search-box本身的
+     max-width/flex規則——側邊欄桌面版是flex-direction:column,flex:1 1 240px
+     在直向flex容器裡會被當成「高度」基準值,把輸入框撐得又高又怪。 */
+  .nav-search-box{position:relative;}
+  .search-box svg,.nav-search-box svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--fg-dim);fill:none;stroke-width:1.8;}
+  .search-box input,.nav-search-box input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);}
   .filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
   .fmt-chip{padding:5px 11px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--fg-dim);
     font-size:.74rem;cursor:pointer;}
@@ -373,6 +380,10 @@
         我的最愛
       </button>
     </nav>
+    <div class="nav-search-box">
+      <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.3" y2="15.3"/></svg>
+      <input id="nav-search-input" type="text" placeholder="搜尋作品名稱…">
+    </div>
     <div class="conn-status" id="conn-status">連線中…</div>
     <div class="auth-status" id="auth-status">登入狀態確認中…</div>
   </aside>
@@ -18468,7 +18479,10 @@ const CN_OVERLAY = {
   "desc": "頂尖間諜「黃昏」奉命刺探敵國高層，需要偽裝成一家三口潛入目標社交圈。他倉促收養來歷成謎的心靈感應少女安妮亞，迎娶身兼殺手身分的約兒為妻，三人各自懷抱祕密，在爆笑日常中逐漸建立起真摯羈絆。",
   "year": 2022,
   "season": "SPRING",
-  "series": "spy-family-tv"
+  "series": "spy-family-tv",
+  "youtube": "https://www.youtube.com/watch?v=cdBebRi3Doo",
+  "youtubeSource": "Muse木棉花-TW",
+  "netflix": "https://www.netflix.com/tw/title/81511410"
  },
  "125367": {
   "title": "輝夜姬想讓人告白 ー超級浪漫ー",
@@ -18476,7 +18490,9 @@ const CN_OVERLAY = {
   "genre": "戀愛",
   "desc": "已是學生會正副會長的兩人終於跨出重要一步，正式成為戀人。面對得來不易的關係，兩人仍改不了愛耍心機、鬥智鬥法的個性，加上朋友們各自情竇初開的插曲，讓校園生活更加熱鬧甜蜜。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=1SNeGbYaZkw",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "111321": {
   "title": "盾之勇者成名錄 Season 2",
@@ -18485,7 +18501,10 @@ const CN_OVERLAY = {
   "desc": "曾遭誣陷入獄、只能靠盾牌戰鬥的尚文，洗清污名後持續帶著奴隸拉芙塔莉雅、菲羅等夥伴在異世界冒險。第二季中，他們深入調查引發異變的靈龜復活之謎，尚文也在旅途中漸漸敞開心房，與夥伴建立起真正的信賴。",
   "year": 2022,
   "season": "SPRING",
-  "series": "tate-yuusha-shield-hero"
+  "series": "tate-yuusha-shield-hero",
+  "youtube": "https://www.youtube.com/watch?v=9WMzZxcOsEU",
+  "youtubeSource": "Ani-One中文官方動畫頻道",
+  "netflix": "https://www.netflix.com/tw/title/81058649"
  },
  "129201": {
   "title": "夏日重現",
@@ -18501,7 +18520,9 @@ const CN_OVERLAY = {
   "genre": "戀愛",
   "desc": "式守同學外表可愛開朗，一旦男友泉遭遇危險，便會瞬間切換成沉著冷靜、可靠帥氣的另一面。兩人的日常充滿反差萌與甜蜜互動，在彼此扶持中一起面對校園生活裡大大小小的插曲。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=-eNWynIH5tA",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "142984": {
   "title": "古見同學是溝通魯蛇。2",
@@ -18509,7 +18530,8 @@ const CN_OVERLAY = {
   "genre": "日常",
   "desc": "古見同學外表清冷完美，實際上患有嚴重社交恐懼，難以與人正常交談。同班的只野仁人發現她的煩惱後，決定陪著她一步步達成「交到一百個朋友」的心願，本季持續講述兩人與性格各異同學間的溫馨校園日常。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81228573"
  },
  "141014": {
   "title": "朋友遊戲",
@@ -18542,7 +18564,9 @@ const CN_OVERLAY = {
   "genre": "奇幻",
   "desc": "現實世界的青年在網路遊戲中沉睡三十年後甦醒，發現自己的化身變成一副全副武裝的骷髏騎士「亞克」。擁有超乎常理的強大實力，他原本只想隱居山林度日，卻在途中救下遭到追捕的黑暗精靈少女，就此捲入異世界的紛爭。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=tQVNuaWOuYU",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "131520": {
   "title": "劇場版 五等分的新娘",
@@ -18567,7 +18591,9 @@ const CN_OVERLAY = {
   "genre": "奇幻",
   "desc": "三千年前令世界聞風喪膽的最強魔王瓦爾瓦德斯，擊敗宿敵、終結所有紛爭後選擇轉生，成為平凡村民「亞德」，只求平靜度日。然而他就讀的學院裡，昔日的勇者與夥伴們竟也相繼轉生成為同班同學，亞德必須一邊隱藏真實身分，一邊守護得來不易的日常。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=-P5sYxF5jtM",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "140457": {
   "title": "勇者、辭職不幹了",
@@ -18575,7 +18601,9 @@ const CN_OVERLAY = {
   "genre": "奇幻",
   "desc": "打倒魔王、拯救世界的勇者利歐，事成之後卻遭國王一紙解僱，失去容身之處。走投無路之際，他意外進入前魔王軍幹部所開設的公司任職，昔日死對頭搖身一變成了同事。利歐必須運用勇者時期磨練出的實力與經驗，在全新的社畜日常中重新找到自己的價值。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=TjzcpofiqZk",
+  "youtubeSource": "Ani-One Asia"
  },
  "141774": {
   "title": "派對咖孔明",
@@ -18583,7 +18611,9 @@ const CN_OVERLAY = {
   "genre": "喜劇",
   "desc": "三國軍師諸葛孔明臨終前許願想投胎到沒有戰亂的世界，卻意外穿越到現代日本澀谷。他遇見懷抱歌手夢想卻缺乏自信的月見英子，決定運用畢生累積的軍略智慧，化身音樂製作人為她出謀劃策，率領她在演藝圈殺出重圍。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=9Qo59P8LZmY",
+  "youtubeSource": "Ani-One中文官方動畫頻道"
  },
  "142455": {
   "title": "泡泡",
@@ -18591,7 +18621,8 @@ const CN_OVERLAY = {
   "genre": "科幻",
   "desc": "東京因不明泡沫現象與重力異常而遭封鎖，只剩下一群失去容身之處的少年少女在廢墟中靠跑酷維生。少年為尋找神祕聲音的來源展開冒險，某次意外墜海後被一名謎樣少女所救，兩人自此相遇相繫，展開一段揉合科幻與哀傷的成長愛戀故事。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81345945"
  },
  "134732": {
   "title": "藍色足跡",
@@ -18623,7 +18654,9 @@ const CN_OVERLAY = {
   "genre": "奇幻",
   "desc": "少女愛梨從異世界被召喚而來，卻被神諭指定為將為世界帶來災厄的「純血種」，執行者少女梅諾奉命暗中接近並將她處決。梅諾原以為只是例行任務，卻在朝夕相處中對愛梨產生動搖，兩人的關係逐漸超越暗殺者與目標，一同踏上尋找真相的旅途。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=U9qGznYqk2g",
+  "youtubeSource": "Ani-One Asia"
  },
  "121176": {
   "title": "小書痴的下剋上：為了成為圖書管理員不擇手段！第三季",
@@ -18631,7 +18664,9 @@ const CN_OVERLAY = {
   "genre": "奇幻",
   "desc": "前世因愛書而死的女主角梅茵，轉生到書籍稀少的異世界貧民女孩身上，立志靠自己雙手做出書籍。第三季中，梅茵的身分與立場出現重大轉折，被捲入貴族與神殿間的權力糾葛，須在守護書籍夢想與嶄新處境的重重考驗間努力求生。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=SFIrydmUYAI",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "133175": {
   "title": "魔法使黎明期",
@@ -18640,7 +18675,9 @@ const CN_OVERLAY = {
   "desc": "在魔法與「魔女」畏懼共存的世界裡，青年被選中進入專門培育對抗魔女戰力的魔法學校，拜入謎樣強大的女教官門下修習魔法。隨著訓練與任務推進，他逐漸發現「魔女」真正的樣貌與世人的偏見大不相同，並被捲入攸關國家存亡的古老封印之謎。",
   "year": 2022,
   "season": "SPRING",
-  "series": "mahoutsukai-reimeiki"
+  "series": "mahoutsukai-reimeiki",
+  "youtube": "https://www.youtube.com/watch?v=PgEmMqShknA",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "133898": {
   "title": "七龍珠超：超級英雄",
@@ -18664,7 +18701,9 @@ const CN_OVERLAY = {
   "genre": "日常",
   "desc": "曾懷抱音樂夢卻鎩羽而歸的青年凪，回到京都繼承家傳的和菓子老店。某天，一名自稱是「未婚妻」的神祕少女五十鈴突然出現在店裡，聲稱是已故的凪母親生前答應的婚約對象。兩人一同在老店中製作和菓子、招呼客人，逐漸修補凪內心的傷痕，重新找回人生方向。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=To3lNmgcUKs",
+  "youtubeSource": "Ani-One Asia"
  },
  "108357": {
   "title": "花園裡的吸血鬼",
@@ -18672,7 +18711,8 @@ const CN_OVERLAY = {
   "genre": "奇幻",
   "desc": "人類與吸血鬼因百年前的戰爭而分裂成兩個世界，森林深處仍存在被稱為「Paradise」的吸血鬼樂園。一名擁有特殊能力、能看見吸血鬼專屬異色世界的少女，因緣際會與吸血鬼女王相遇，兩人跨越種族藩籬，展開一段追尋自由與歸屬的旅程。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/80996247"
  },
  "132171": {
   "title": "舞・舞・舞男",
@@ -18688,7 +18728,9 @@ const CN_OVERLAY = {
   "genre": "戀愛",
   "desc": "擅長捉弄人的高木同學系列完結篇電影，描述西片與高木在國中三年級、即將面臨畢業與分離的最後階段。長年以來一來一往的捉弄與較勁逐漸昇華為青澀曖昧的心動，兩人必須在有限的時間裡，鼓起勇氣說出深藏已久卻遲遲未曾坦白的心意。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=rgeoebNJksk",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "117074": {
   "title": "劇場版 異世界四重奏 ～Another World～",
@@ -18713,7 +18755,9 @@ const CN_OVERLAY = {
   "desc": "地下高爾夫賭局的常勝女孩伊芙靠精湛球技維生，某次意外邂逅名門千金天鷲葵──出身超級企業家族、隸屬名校高球社的優等生；兩個出身天差地遠的少女因高爾夫球場交會，從此展開一段將顛覆球壇常規的較量與友情。",
   "year": 2022,
   "season": "SPRING",
-  "series": "birdie-wing"
+  "series": "birdie-wing",
+  "youtube": "https://www.youtube.com/watch?v=xHpAyH5Na48",
+  "youtubeSource": "Ani-One Asia"
  },
  "138459": {
   "title": "成為女主角！~被討厭的女主角和秘密的工作~",
@@ -18729,7 +18773,9 @@ const CN_OVERLAY = {
   "genre": "奇幻",
   "desc": "三十歲騎士亞爾文一心想闖出名號，卻在旅途中遇上自稱治療師的黑暗精靈卡菈；卡菈的「治療魔法」非但沒有妙手回春，反而讓亞爾文屢屢受傷，甚至意外對他下了詛咒──只要兩人相距超過300公尺，亞爾文就會沒命，兩人被迫展開有苦難言的同行生活。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=uXlUyEL0TsA",
+  "youtubeSource": "Ani-One Asia"
  },
  "141350": {
   "title": "女忍者椿的心事",
@@ -18737,7 +18783,10 @@ const CN_OVERLAY = {
   "genre": "喜劇",
   "desc": "在嚴禁接觸男性的女忍者村赤音之里，椿身為「犬組」隊長、天資出眾的優等生，卻在某次任務後開始對「男人」這個禁忌話題產生說不出口的好奇與悸動；這份無處宣洩的少女心事，讓她在肩負重任的忍者生涯中逐漸亂了方寸。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=OlaJiSVKUPo",
+  "youtubeSource": "Ani-One Asia",
+  "netflix": "https://www.netflix.com/tw/title/81595495"
  },
  "109928": {
   "title": "犬王",
@@ -18778,7 +18827,8 @@ const CN_OVERLAY = {
   "genre": "動作",
   "desc": "冷戰尾聲，世界各地陸續出土被稱為OOPArts的史前超科技遺產，各方勢力為爭奪足以毀滅世界的力量明爭暗鬥；身兼高中生與特務雙重身分的少年御神苗優，作為ARCAM機關王牌特工「SPRIGGAN」，隻身潛入各地遺跡戰場阻止禁忌力量遭到軍事濫用。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81050064"
  },
  "138700": {
   "title": "憂國的莫里亞蒂 OVA",
@@ -18796,7 +18846,9 @@ const CN_OVERLAY = {
   "desc": "虹咲學園裡的學園偶像社成員們，不追求組成固定團體出道，而是堅持讓「每個人都是主角」各自摸索表演風格；第二季描寫她們為了首場大型演唱會而努力磨練歌舞實力、逐步凝聚彼此情誼的過程。",
   "year": 2022,
   "season": "SPRING",
-  "series": "love-live-nijigasaki"
+  "series": "love-live-nijigasaki",
+  "youtube": "https://www.youtube.com/watch?v=T3OnpUGp0Q0",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "133412": {
   "title": "Healer Girl",
@@ -18837,7 +18889,9 @@ const CN_OVERLAY = {
   "genre": "運動",
   "desc": "國中時期空有一身幹勁、卻因缺乏教練指導而默默無聞的水嶋亮，光靠體力硬是打進縣大賽；升上高中後，他加入擁有傳奇教練海老原坐鎮的橫濱湊高中羽球隊，在眾多實力堅強的隊友刺激下，朝著全國大賽的舞台奮力進擊。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=fApkA7J0VqY",
+  "youtubeSource": "Ani-One Asia"
  },
  "139303": {
   "title": "BLACK★★ROCK SHOOTER DAWN FALL",
@@ -18869,7 +18923,8 @@ const CN_OVERLAY = {
   "genre": "喜劇",
   "desc": "古羅馬浴場設計師盧修斯意外獲得穿越時空的能力，數度往返於現代日本澡堂與古羅馬之間；他將沿途觀察到的入浴文化與設施創意帶回羅馬應用，卻也因文化衝擊鬧出不少啼笑皆非的趣事。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81264354"
  },
  "145813": {
   "title": "寶可夢：洗翠白雪",
@@ -18877,7 +18932,9 @@ const CN_OVERLAY = {
   "genre": "冒險",
   "desc": "少年亞歷克跟隨父親首次踏上冰封的洗翠地方採集藥草，途中邂逅並悉心照顧一隻受傷的洗翠索羅亞；這段回憶讓亞歷克開始動搖父親「人類與寶可夢應保持距離」的信念，也間接促成日後調查隊的成立。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=thhRi11aTI8",
+  "youtubeSource": "The Official Pokémon YouTube channel (@pokemon)"
  },
  "136303": {
   "title": "真‧一騎當千",
@@ -18910,7 +18967,8 @@ const CN_OVERLAY = {
   "desc": "在英雄行為需仰賴贊助商廣告資金、還得顧慮收視率的世界裡，資深英雄「野生虎」與新人搭檔巴納比繼續並肩作戰；第二季描寫巴納比因雙親遇害而糾纏至今的神秘組織「烏洛波羅斯」捲土重來，兩人的英雄之路面臨前所未有的嚴峻考驗。",
   "year": 2022,
   "season": "SPRING",
-  "series": "tiger-bunny-2"
+  "series": "tiger-bunny-2",
+  "netflix": "https://www.netflix.com/tw/title/80039972"
  },
  "132232": {
   "title": "Re:cycle of the PENGUINDRUM 前篇：你的列車是生存戰略",
@@ -18942,7 +19000,8 @@ const CN_OVERLAY = {
   "genre": "懸疑",
   "desc": "高木與佐藤刑警的婚禮遭兇徒闖入襲擊，勾起三年前系列爆炸案的記憶；同時，潛入公安部追緝在逃炸彈客的降谷零，卻被神祕蒙面人裝上頸圈炸彈陷入絕境。柯南一行人需在萬聖節的澀谷街頭，揭穿新舊案件間的關聯。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81757621"
  },
  "139273": {
   "title": "機動戰士鋼彈 庫克魯斯·多安的島",
@@ -18966,7 +19025,8 @@ const CN_OVERLAY = {
   "genre": "科幻",
   "desc": "草薙素子率領公安九課，在人類文明瀕臨崩壞的近未來東京，與號召難民集結、企圖引爆「進化奇點」的島村隆正面對峙。隨著失去「魂」卻擁有AI思維的「後人類」現身，九課成員被迫直面究竟是什麼讓人類之所以為人的提問。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81030224"
  },
  "140002": {
   "title": "名偵探柯南 零的日常",
@@ -18974,7 +19034,8 @@ const CN_OVERLAY = {
   "genre": "日常",
   "desc": "以公安警官降谷零（安室透）在咖啡廳「洋菓子超人」打工的日常生活為主軸的外傳短篇，呈現他身兼臥底刑警、料理研究會成員與甜點師三重身分間游刃有餘、詼諧機智的另一面。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/81313289"
  },
  "143203": {
   "title": "境界戰機 第二部",
@@ -18992,7 +19053,9 @@ const CN_OVERLAY = {
   "desc": "向Key社經典戀愛遊戲致敬的企劃第二彈，由虛構主持人「杏」串聯《AIR》《CLANNAD》《Rewrite》《Angel Beats!》等作品的名場面與新編短劇，以搞笑吐槽包裝對這些催淚神作的溫馨回顧。",
   "year": 2022,
   "season": "SPRING",
-  "series": "kagi-nado"
+  "series": "kagi-nado",
+  "youtube": "https://www.youtube.com/watch?v=DlwORUNF_lQ",
+  "youtubeSource": "Muse木棉花-TW"
  },
  "143289": {
   "title": "艾斯塔布萊夫：大脫逃",
@@ -19009,7 +19072,9 @@ const CN_OVERLAY = {
   "desc": "改編自線上對戰麻將遊戲《雀魂》的90秒迷你動畫，人氣角色一姬、輝夜姬等人化身Q版造型，在魂天神社上演插科打諢的麻將主題鬧劇，穿插吃、碰、槓等牌局哏製造歡笑。",
   "year": 2022,
   "season": "SPRING",
-  "series": "jantama-pong"
+  "series": "jantama-pong",
+  "youtube": "https://www.youtube.com/watch?v=JYtiZExO32k",
+  "youtubeSource": "雀魂(じゃんたま)日本官方頻道 @MahjongSoul_JP"
  },
  "109911": {
   "title": "ULTRAMAN 第二季",
@@ -19017,7 +19082,8 @@ const CN_OVERLAY = {
   "genre": "戰鬥",
   "desc": "繼承父親早田進的力量與使命，高中生早田進次郎成為新一代超人戰士的少數適任者之一。第二季中，自稱「貝姆拉」的神祕超人現身，進次郎必須在守護地球與探索自身能力極限間，迎戰接連而來的強大外星威脅。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "netflix": "https://www.netflix.com/tw/title/80231373"
  },
  "142016": {
   "title": "八十龜同學觀察日記 第4冊",
@@ -19050,7 +19116,9 @@ const CN_OVERLAY = {
   "genre": "戰鬥",
   "desc": "六葉町一對經營「宇宙人異狀處理社」的雙胞胎小學生王道遊飛與遊步，在麥田圈中意外發現真正的太空船，因而結識來自貝爾加星團的宇宙人尤帝亞斯。尤帝亞斯憑藉神祕的銀河系卡組加入調查社，與雙胞胎展開熱鬧的決鬥冒險。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=VjFVzs7ta7c",
+  "youtubeSource": "遊戲王 Rush Duel TV 日本官方頻道 @rushduelTV"
  },
  "140085": {
   "title": "闇影詩章F",
@@ -19114,7 +19182,9 @@ const CN_OVERLAY = {
   "genre": "喜劇",
   "desc": "曾隻身擊敗魔王軍、卻因過於強大遭人類社會排擠的前勇者利歐，隱瞞真實身分應徵魔王城的行政職務，靠著過人實力與智謀迅速平步青雲。迷你篇以輕鬆的番外小劇場，呈現利歐在魔王城內不為人知的爆笑日常插曲。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=-Fwh9ySiUCs",
+  "youtubeSource": "KADOKAWAanime（角川官方動畫頻道，日本原公司頻道）"
  },
  "146488": {
   "title": "機動戰士鋼彈00 Revealed Chronicle",
@@ -19154,7 +19224,9 @@ const CN_OVERLAY = {
   "genre": "奇幻",
   "desc": "上班族森田意外穿越到異世界，受命成為偶像製作人，帶領精靈與異種族少女以歌聲和舞蹈找回世界失落的光芒，能否用音樂拯救異世界成為故事核心懸念。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=ZhGLIh6_Das",
+  "youtubeSource": "BS Fuji Official Channel(日本BS富士電視台官方頻道)"
  },
  "149099": {
   "title": "魔法使黎明期 迷你動畫",
@@ -19172,7 +19244,9 @@ const CN_OVERLAY = {
   "desc": "承接《小邪神飛踢》第三季世界觀推出的迷你番外篇，以幾分鐘的短篇形式，繼續描繪被召喚到人間、老是挨揍卻打不死的邪神與少女縁的荒謬日常。",
   "year": 2022,
   "season": "SPRING",
-  "series": "jashin-chan-dropkick-x"
+  "series": "jashin-chan-dropkick-x",
+  "youtube": "https://www.youtube.com/watch?v=K-IZpw8wYhw",
+  "youtubeSource": "【公式】邪神ちゃんねる【切り抜きOK】(邪神ちゃん官方頻道)"
  },
  "113689": {
   "title": "寶石寵物 攻擊之旅！",
@@ -19188,7 +19262,9 @@ const CN_OVERLAY = {
   "genre": "戰鬥",
   "desc": "少年甲賀可太意外獲得神秘新型戰鬥玩具「可樂丸DX」，就此踏入瓶蓋對戰世界；另一位主角帆狩涼則因故一度厭惡此遊戲，為了某個目的重返戰場，兩人在對抗與合作間爭奪「瓶蓋之王」寶座。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=BJ9-9wy8TrE",
+  "youtubeSource": "タカラトミー(Takara Tomy官方頻道)"
  },
  "146865": {
   "title": "決鬥大師 King MAX",
@@ -19196,7 +19272,9 @@ const CN_OVERLAY = {
   "genre": "戰鬥",
   "desc": "已升上小學六年級的主角切札喬伊持續與夥伴享受決鬥大師卡牌對戰，此時曾化身鬼怪的男子鬼札阿巴克再度出現，本作作為「決鬥大師 King！」系列完結篇畫下句點。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=0yrMGHFdRSc",
+  "youtubeSource": "デュエチューブ-DM公式-(Duel Masters系列官方頻道)"
  },
  "149098": {
   "title": "魔法使黎明期×魔法愛心店長 2丁目 聯名迷你動畫",
@@ -19245,7 +19323,9 @@ const CN_OVERLAY = {
   "genre": "喜劇",
   "desc": "因香火漸失而從神界跌落人間的七福神，落腳於人類城鎮後過著一點也不威嚴、甚至有些迷糊冒失的慵懶生活，以逗趣反差描繪神明們接地氣的日常喜劇。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=hIIowz_z5EU",
+  "youtubeSource": "なならき～Seven Lucky Gods～公式チャンネル【アニメ】"
  },
  "154173": {
   "title": "斜角心情",
@@ -19293,7 +19373,9 @@ const CN_OVERLAY = {
   "genre": "戰鬥",
   "desc": "以多美小汽車為題材的玩具宣傳短篇，各種職業造型的載具能特殊改裝並合體成巨大機器人「職業戰士」，用熱血的變形合體場面吸引低齡男孩觀眾。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=YBWQy9VyLrQ",
+  "youtubeSource": "タカラトミー(Takara Tomy官方頻道／タカラトミーチャンネル)"
  },
  "179870": {
   "title": "屁屁偵探 第6期",
@@ -19310,7 +19392,9 @@ const CN_OVERLAY = {
   "genre": "紀錄",
   "desc": "由日本北方領土問題對策協會製作的公益動畫，以棲息於北方四島一帶、象徵思鄉之情的海鳥花魁鳥為意象，訴說當地居民對故土與和平解決領土爭議的期盼。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=dJdjY_Vsk0I",
+  "youtubeSource": "獨立行政法人北方領土問題対策協会(日本政府相關官方機構頻道)"
  },
  "183474": {
   "title": "小混混倉鼠 第三季",
@@ -19319,7 +19403,9 @@ const CN_OVERLAY = {
   "desc": "由兩人獨立動畫團隊打造的短篇喜劇，主角是一群裝扮成不良少年模樣的倉鼠，領頭的飛機頭倉鼠、天然呆龐克頭倉鼠與毒舌後輩每天上演倉鼠尺寸的耍帥日常。",
   "year": 2022,
   "season": "SPRING",
-  "series": "yankee-hamster"
+  "series": "yankee-hamster",
+  "youtube": "https://www.youtube.com/watch?v=8wXjCYYfSDM",
+  "youtubeSource": "ピソスタチャンネル(Piso Studio原創作者官方頻道)"
  },
  "200372": {
   "title": "大槌凱物語",
@@ -19327,7 +19413,9 @@ const CN_OVERLAY = {
   "genre": "劇情",
   "desc": "在311大地震中受創的岩手縣大槌町長大的主角凱，返鄉後於三陸鐵道大槌站任職，帶著地震留下的傷痕，透過與努力生活的當地居民相遇，展開一段成長故事。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=chcoiYbBak0",
+  "youtubeSource": "大槌町観光交流協会(日本岩手縣大槌町觀光交流協會官方頻道)"
  },
  "214077": {
   "title": "Re:Bāsu 有 vs 大王可汗",
@@ -19335,7 +19423,9 @@ const CN_OVERLAY = {
   "genre": "日常",
   "desc": "改編自集換式卡牌遊戲的迷你動畫，講述名古屋女高中生有與夥伴們熱衷卡牌對戰的校園日常；本集特別邀來現實中的職業摔角選手大王可汗客串演出。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=sbngB_7PRH8",
+  "youtubeSource": "「公式」ヴァイスシュヴァルツ&Reバースチャンネル(Bushiroad旗下官方頻道)"
  },
  "181831": {
   "title": "瘋狂玩具嘰喳秀",
@@ -19351,7 +19441,9 @@ const CN_OVERLAY = {
   "genre": "喜劇",
   "desc": "由日本中央競馬會（JRA）製作，將人們腦中天人交戰的內心糾結具象化為賽馬競速的獨特短篇，首集以深夜超商前的「食慾大賽」為題，詼諧演繹現代人的日常煩惱。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=AJs7osJnXYw",
+  "youtubeSource": "DLE Channel(製作公司DLE官方頻道,JRA日本中央競馬會委製動畫)"
  },
  "187219": {
   "title": "鷲桑特別篇：拯救地球的未來！鷲桑 vs 鷲賈",
@@ -19367,7 +19459,9 @@ const CN_OVERLAY = {
   "genre": "日常",
   "desc": "由洋芋片品牌湖池屋製作的SDGs教育短篇，世代守護虛構「六角島」的雙胞胎忍者姊妹沙斯與蒂娜，偕同AI機器人一同智取化為怪獸的各種環境與社會議題。",
   "year": 2022,
-  "season": "SPRING"
+  "season": "SPRING",
+  "youtube": "https://www.youtube.com/watch?v=_-icQ1Fz8QU",
+  "youtubeSource": "koikeya(湖池屋官方YouTube頻道)"
  },
  "135513": {
   "title": "楓與鈴 THE ANIMATION",
@@ -26010,6 +26104,16 @@ function render(){
   } else if(activeTab === 'favorites'){
     main.innerHTML = simpleListHtml('favorites');
   }
+  syncNavSearchInput();
+}
+/* 側邊欄(手機版浮動header)裡的全站搜尋框跟內容區「季度瀏覽」頁面自己的搜尋框
+   共用同一個 query 變數,但是兩個各自獨立的<input>節點——每次render()結束後
+   都把導覽列搜尋框的值同步成目前的query,這樣不管是從哪個輸入框打字觸發搜尋,
+   另一個輸入框都不會顯示過期的舊字串。跳過「目前正在打字的那個框」不同步,
+   避免游標位置/組字狀態被打斷(邏輯跟renderPreserveFocus保護內容搜尋框是同一個道理)。 */
+function syncNavSearchInput(){
+  const el = document.getElementById('nav-search-input');
+  if(el && document.activeElement !== el && el.value !== query) el.value = query;
 }
 /* 搜尋框每打一個字都整頁重繪的話,舊的 <input> 節點會被換成新的、焦點跟著不見,
    變成「打一個字就要重新點回去才能打下一個字」。這裡在重繪前記住搜尋框是否
@@ -26330,6 +26434,40 @@ function wireBrowseControls(){
     query = e.target.value;
     if(e.isComposing || searchComposing) return; // 組字中的中間狀態不觸發搜尋,交給compositionend處理
     triggerSearch();
+  });
+}
+/* 側邊欄(手機版浮動header)的全站搜尋框——不管目前在哪一頁/哪個分頁都能直接打字搜尋,
+   不用先切到「季度瀏覽」分頁。這個<input>是HTML裡固定寫死的節點(不在#main裡面,
+   不會被render()整個換掉),所以不像內容搜尋框那樣需要renderPreserveFocus那套
+   焦點/組字保護——node本身從頭到尾都是同一個,IME組字狀態不會被打斷。
+   只有「原本不在季度瀏覽分頁(或正開著某部作品詳情頁)、打進第一個字」這個情境
+   需要主動切分頁+顯示loading skeleton,不然畫面會先閃一下「找不到結果」
+   (因為那個當下query已非空但searchResults/searchState還是舊的)。切分頁之後,
+   後續每個字直接沿用跟內容搜尋框一樣的triggerSearch()防抖機制就好,不用每次都
+   自己呼叫render()。 */
+function onNavSearchType(value){
+  query = value;
+  if(query.trim() && (activeTab !== 'browse' || activeDetailId != null)){
+    searchState = 'loading';
+    activeTab = 'browse';
+    activeDetailId = null;
+    document.querySelectorAll('.nav-item').forEach(b=> b.classList.toggle('active', b.dataset.tab==='browse'));
+    render();
+  }
+  triggerSearch();
+}
+function wireNavSearch(){
+  const el = document.getElementById('nav-search-input');
+  if(!el) return;
+  let composing = false;
+  el.addEventListener('compositionstart', ()=>{ composing = true; });
+  el.addEventListener('compositionend', e=>{
+    composing = false;
+    onNavSearchType(e.target.value);
+  });
+  el.addEventListener('input', e=>{
+    if(e.isComposing || composing) return;
+    onNavSearchType(e.target.value);
   });
 }
 function cardHtml(m){
@@ -26939,6 +27077,7 @@ document.body.classList.toggle('grid-cols-2', mobileGridCols===2);
 document.body.classList.toggle('grid-cols-3', mobileGridCols===3);
 loadCurrentSeason();
 initAuth(); // 取代原本直接呼叫的 initLog()/initFavorites()——這兩個現在改由登入狀態決定時機才呼叫
+wireNavSearch(); // 側邊欄全站搜尋框,節點固定不會被render()換掉,開機時綁一次事件就好
 if(activeTab==='home' && homeSection==='popular') ensurePopularLoaded();
 // 「AniList 連線正常/失敗」是給開發除錯用的狀態燈,一般使用者不需要看到——
 // 只在用 file:// 直接開本機檔案時(開發測試情境)才顯示,正式網站(https://)一律隱藏。
