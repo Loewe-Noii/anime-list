@@ -153,8 +153,11 @@
   .related-box h4{font-size:.84rem;font-weight:700;margin-bottom:10px;}
   .related-chips{display:flex;gap:10px;flex-wrap:wrap;}
   /* 2026-09-13改成「封面+標題」卡片形式(原本是季度+標題的純文字條)。寬度固定
-     成小海報尺寸,標題最多兩行截斷,跟.card海報牆的3:4比例保持一致觀感。 */
-  .related-chip{display:flex;flex-direction:column;gap:6px;width:96px;padding:0;border:2px solid transparent;
+     成小海報尺寸,跟.card海報牆的3:4比例保持一致觀感。
+     2026-09-13再修:使用者反應標題太長會被截斷看不全、也看不到季度——標題改成
+     不截斷(可以換行到需要的行數),季度用小字補回封面正下方,不會因為改成
+     圖卡就完全遺失這個資訊。 */
+  .related-chip{display:flex;flex-direction:column;gap:4px;width:112px;padding:0;border:2px solid transparent;
     border-radius:8px;background:none;color:var(--fg);cursor:pointer;text-align:left;font:inherit;}
   .related-chip:hover{border-color:var(--accent);}
   .related-cover{width:100%;aspect-ratio:3/4;border-radius:6px;overflow:hidden;background:var(--surface-alt);}
@@ -162,8 +165,8 @@
   .related-cover.loading{background:linear-gradient(100deg,var(--surface-alt) 30%,var(--border) 50%,var(--surface-alt) 70%);
     background-size:200% 100%;animation:shimmer 1.3s infinite;}
   @media (prefers-reduced-motion:reduce){ .related-cover.loading{animation:none;} }
-  .related-chip .related-title{font-size:.7rem;font-weight:600;line-height:1.3;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .related-chip .related-season{font-size:.63rem;color:var(--fg-dim);}
+  .related-chip .related-title{font-size:.7rem;font-weight:600;line-height:1.35;word-break:break-word;}
   .related-chip.current{border-color:var(--accent);cursor:default;}
   .related-chip.current .related-title{color:var(--accent);}
   .adult-toggle{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;color:var(--fg-dim);cursor:pointer;
@@ -80657,8 +80660,9 @@ function relatedAnimeHtml(m){
           const cover = coverUrlFor(g.id);
           const isCurrent = g.id === m.id;
           return `
-            <button class="related-chip ${isCurrent?'current':''}" ${isCurrent?'disabled':`onclick="openDetail(${g.id})"`} title="${escapeHtml(g.title)}">
+            <button class="related-chip ${isCurrent?'current':''}" ${isCurrent?'disabled':`onclick="openDetail(${g.id})"`}>
               <div class="related-cover${cover?'':' loading'}">${cover ? `<img src="${escapeHtml(cover)}" alt="" loading="lazy">` : ''}</div>
+              <span class="related-season mono">${g.year} ${(SEASON_LABELS[g.season]||'').replace(/[（(].*[)）]/,'')}</span>
               <span class="related-title">${escapeHtml(g.title)}</span>
             </button>
           `;
