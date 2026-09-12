@@ -151,14 +151,21 @@
   .search-hint{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.78rem;color:var(--fg-dim);margin-bottom:16px;}
   .related-box{margin-top:20px;padding:14px 16px;border:1px solid var(--border);border-radius:8px;background:var(--surface);}
   .related-box h4{font-size:.84rem;font-weight:700;margin-bottom:10px;}
-  .related-chips{display:flex;gap:8px;flex-wrap:wrap;}
-  .related-chip{display:flex;flex-direction:column;gap:2px;align-items:flex-start;padding:7px 12px;border:1px solid var(--border);
-    border-radius:7px;background:var(--bg);color:var(--fg);cursor:pointer;text-align:left;max-width:220px;}
+  .related-chips{display:flex;gap:10px;flex-wrap:wrap;}
+  /* 2026-09-13改成「封面+標題」卡片形式(原本是季度+標題的純文字條)。寬度固定
+     成小海報尺寸,標題最多兩行截斷,跟.card海報牆的3:4比例保持一致觀感。 */
+  .related-chip{display:flex;flex-direction:column;gap:6px;width:96px;padding:0;border:2px solid transparent;
+    border-radius:8px;background:none;color:var(--fg);cursor:pointer;text-align:left;font:inherit;}
   .related-chip:hover{border-color:var(--accent);}
-  .related-chip .related-season{font-size:.66rem;color:var(--fg-dim);}
-  .related-chip .related-title{font-size:.8rem;font-weight:600;line-height:1.3;}
-  .related-chip.current{background:var(--accent);border-color:var(--accent);cursor:default;}
-  .related-chip.current .related-season,.related-chip.current .related-title{color:var(--accent-fg);}
+  .related-cover{width:100%;aspect-ratio:3/4;border-radius:6px;overflow:hidden;background:var(--surface-alt);}
+  .related-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+  .related-cover.loading{background:linear-gradient(100deg,var(--surface-alt) 30%,var(--border) 50%,var(--surface-alt) 70%);
+    background-size:200% 100%;animation:shimmer 1.3s infinite;}
+  @media (prefers-reduced-motion:reduce){ .related-cover.loading{animation:none;} }
+  .related-chip .related-title{font-size:.7rem;font-weight:600;line-height:1.3;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .related-chip.current{border-color:var(--accent);cursor:default;}
+  .related-chip.current .related-title{color:var(--accent);}
   .adult-toggle{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;color:var(--fg-dim);cursor:pointer;
     padding:5px 11px;border:1px dashed var(--border);border-radius:999px;}
   .adult-toggle input{cursor:pointer;}
@@ -423,6 +430,18 @@ query($season:MediaSeason,$year:Int,$page:Int){
       averageScore
       popularity
       nextAiringEpisode{ episode airingAt }
+    }
+  }
+}`;
+/* 「相關動畫」封面卡片專用的輕量查詢——只拿id+coverImage,不像SEASON_QUERY
+   抓一整季所有欄位,用id_in一次查一整組(最多50筆,超過在ensureCoversLoaded
+   分批)。 */
+const MEDIA_COVERS_QUERY = `
+query($ids:[Int]){
+  Page(perPage:50){
+    media(id_in:$ids, type:ANIME){
+      id
+      coverImage{ extraLarge large medium }
     }
   }
 }`;
@@ -79372,6 +79391,14 @@ let curYear = 2026, curSeasonKey = 'SUMMER';
 const SEASON_LABELS = {WINTER:'冬季(1-3月)', SPRING:'春季(4-6月)', SUMMER:'夏季(7-9月)', FALL:'秋季(10-12月)'};
 const SEASON_ORDER = {WINTER:0, SPRING:1, SUMMER:2, FALL:3};
 let seasonCache = {}; // key `${year}-${season}` -> media array
+/* 「相關動畫」改成封面+標題卡片後需要的圖(CN_OVERLAY本身沒存圖,只有title/year/
+   season)。coverCache只存id->coverImage,用MEDIA_COVERS_QUERY一次batch查一整組,
+   不是一筆一個API(避免像搜尋那次一樣,一個大群組20~30筆會造成限流風暴)。
+   coverFailed記錄「查過但查不到/重試用盡仍失敗」的id,這個session裡不再重試,
+   不然每次detailHtml()重繪都會白白再打一次API。 */
+let coverCache = {};
+let coverFailed = new Set();
+let coverFetchInFlight = {};
 let loadState = 'idle'; // idle|loading|error
 let loadError = '';
 let query = '';
@@ -80489,6 +80516,49 @@ function findMediaAnywhere(id){
   }
   return null;
 }
+/* 「相關動畫」封面圖優先沿用已經抓過的季度資料(findMediaAnywhere,零成本),
+   真的沒有才去查coverCache(ensureCoversLoaded補的)。兩邊都沒有就回傳null,
+   呼叫端顯示灰底佔位圖,不會是破圖。 */
+function coverUrlFor(id){
+  const m = findMediaAnywhere(id);
+  if(m) return m.coverImage.large || m.coverImage.extraLarge || m.coverImage.medium;
+  const c = coverCache[id];
+  if(c) return c.large || c.extraLarge || c.medium;
+  return null;
+}
+/* 把一組id裡「還沒有封面資料」的挑出來,用MEDIA_COVERS_QUERY的id_in一次batch查
+   (最多50筆一批),不是逐筆各打一次API。回傳true代表這次真的有補到新資料、
+   值得重繪;回傳false代表全部早就有圖或已知查不到,呼叫端不用再重繪一次,
+   避免每次detailHtml()重繪都白白再呼叫一次造成無窮迴圈。 */
+async function ensureCoversLoaded(ids){
+  const need = ids.filter(id => !findMediaAnywhere(id) && !coverCache[id] && !coverFailed.has(id));
+  if(need.length === 0) return false;
+  const chunks = [];
+  for(let i=0;i<need.length;i+=50) chunks.push(need.slice(i,i+50));
+  await Promise.all(chunks.map(async chunk => {
+    const key = chunk.join(',');
+    if(coverFetchInFlight[key]) return coverFetchInFlight[key];
+    const p = (async () => {
+      try{
+        const json = await fetchAniListWithRetry({query: MEDIA_COVERS_QUERY, variables:{ids:chunk}});
+        const got = new Set();
+        for(const media of json.data.Page.media){
+          coverCache[media.id] = media.coverImage;
+          got.add(media.id);
+        }
+        // AniList只會回傳查得到的id,查不到的(下架/id有誤)也要標記失敗,不然下次還會再打一次。
+        for(const id of chunk){ if(!got.has(id)) coverFailed.add(id); }
+      }catch(e){
+        // 重試用盡仍失敗,整批標記失敗——這次先不顯示封面,同一個session不再重打
+        // (避免跟搜尋那次一樣,大群組反覆抓取造成限流風暴),重新整頁再試一次即可。
+        for(const id of chunk) coverFailed.add(id);
+      }
+    })();
+    coverFetchInFlight[key] = p;
+    try{ await p; } finally { delete coverFetchInFlight[key]; }
+  }));
+  return true;
+}
 function detailHtml(){
   /* 踩過的坑:點「相關動畫」切到不同季度的作品時,ensureSeasonLoadedFor會在fetch開始前
      就先把curYear/curSeasonKey同步切成目標季度、才觸發這次loading中繼render——但這時
@@ -80570,16 +80640,29 @@ function relatedAnimeHtml(m){
     isGuess = true;
   }
   if(group.length <= 1) return '';
+  /* 使用者要求改成「只顯示封面+標題」的卡片形式(2026-09-13)。CN_OVERLAY本身沒存圖,
+     這裡fire-and-forget觸發ensureCoversLoaded補齊整組的封面,補到才重繪讓圖片浮現;
+     changed===false(全部早就有圖/已知查不到)就不重繪,避免每次detailHtml()重繪都
+     白白再呼叫一次。activeDetailId的比對是防呆:等待期間使用者可能已經切到別的
+     作品,這時候補到的圖不該再蓋一次畫面。 */
+  const myDetailId = activeDetailId;
+  ensureCoversLoaded(group.map(g=>g.id)).then(changed => {
+    if(changed && activeDetailId === myDetailId) renderPreserveFocus();
+  });
   return `
     <div class="related-box">
       <h4>相關動畫${isGuess ? '(依標題推測,未逐一查證)' : '(同系列)'}</h4>
       <div class="related-chips">
-        ${group.map(g => `
-          <button class="related-chip ${g.id===m.id?'current':''}" ${g.id===m.id?'disabled':`onclick="openDetail(${g.id})"`}>
-            <span class="related-season mono">${g.year} ${(SEASON_LABELS[g.season]||'').replace(/[（(].*[)）]/,'')}</span>
-            <span class="related-title">${escapeHtml(g.title)}</span>
-          </button>
-        `).join('')}
+        ${group.map(g => {
+          const cover = coverUrlFor(g.id);
+          const isCurrent = g.id === m.id;
+          return `
+            <button class="related-chip ${isCurrent?'current':''}" ${isCurrent?'disabled':`onclick="openDetail(${g.id})"`} title="${escapeHtml(g.title)}">
+              <div class="related-cover${cover?'':' loading'}">${cover ? `<img src="${escapeHtml(cover)}" alt="" loading="lazy">` : ''}</div>
+              <span class="related-title">${escapeHtml(g.title)}</span>
+            </button>
+          `;
+        }).join('')}
       </div>
     </div>
   `;
