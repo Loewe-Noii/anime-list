@@ -314,6 +314,11 @@
   .icon-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:4px 8px;cursor:pointer;color:var(--fg-dim);font-size:.72rem;}
   .icon-btn:hover{color:var(--danger);border-color:var(--danger);}
   .date-add-btn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:.72rem;padding:0;text-decoration:underline;}
+  /* 追番紀錄表格欄位排序(2026-09-13新增)。 */
+  th.th-sortable{cursor:pointer;user-select:none;}
+  th.th-sortable:hover{color:var(--fg);}
+  th.th-sortable.active{color:var(--accent);}
+  .btn-ghost.active{border-color:var(--accent);color:var(--accent);}
   /* 手機版把橫向捲動的表格改成直向卡片式排版,每一列變成一張卡片(封面+標題在上,
      狀態/次數/觀看日期/備註直向堆疊在下,移除按鈕收在最下面)。用nth-child把固定順序
      的7個td映射到grid-template-areas,不用改JS產生的DOM順序;data-label屬性(JS那邊
@@ -436,14 +441,15 @@ query($season:MediaSeason,$year:Int,$page:Int){
     }
   }
 }`;
-/* 「相關動畫」封面卡片專用的輕量查詢——只拿id+coverImage,不像SEASON_QUERY
-   抓一整季所有欄位,用id_in一次查一整組(最多50筆,超過在ensureCoversLoaded
-   分批)。 */
+/* 「相關動畫」封面卡片、以及追蹤中/我的最愛/追番紀錄的格式篩選共用的輕量查詢——
+   只拿id+coverImage+format,不像SEASON_QUERY抓一整季所有欄位,用id_in一次查
+   一整組(最多50筆,超過在ensureCoversLoaded分批)。 */
 const MEDIA_COVERS_QUERY = `
 query($ids:[Int]){
   Page(perPage:50){
     media(id_in:$ids, type:ANIME){
       id
+      format
       coverImage{ extraLarge large medium }
     }
   }
@@ -18624,7 +18630,7 @@ const CN_OVERLAY = {
   "desc": "桐人與亞絲娜持續攻略死亡遊戲「刀劍神域」第五層迷宮，意外察覺兩大攻略公會正因搶奪頭目戰利品而醞釀分裂衝突，其中一方甚至計畫獨自搶攻頭目、獨吞戰功。為避免公會內鬥波及得來不易的新年慶典，兩人決定搶先挑戰頭目，設法化解這場一觸即發的危機。",
   "year": 2022,
   "season": "FALL",
-  "series": "sword-art-online-tv",
+  "series": "sword-art-online-main",
   "netflix": "https://www.netflix.com/tw/title/81710851",
   "backup": ""
  },
@@ -23291,7 +23297,7 @@ const CN_OVERLAY = {
   "desc": "電玩死亡遊戲「刀劍神域」開服首日,獨自行動的少年桐人在第一層迷宮中遭遇強敵,命懸一線之際被神祕劍士亞絲娜所救。兩人因此結伴同行,為了突破第一層層主關卡、揭開亞絲娜始終隱瞞的過去,合力挑戰足以致命的重重考驗。",
   "year": 2021,
   "season": "FALL",
-  "series": "sword-art-online-tv",
+  "series": "sword-art-online-main",
   "youtube": "https://www.youtube.com/watch?v=MqR5yey84sg",
   "youtubeSource": "Muse木棉花-TW",
   "netflix": "https://www.netflix.com/tw/title/81768333",
@@ -41064,7 +41070,8 @@ const CN_OVERLAY = {
   "desc": "在虛擬世界「Gun Gale Online」裡，一名少年始終忘不了曾與他並肩作戰的神秘少女，深信兩人之間存在真摯羈絆。然而對少女而言，那不過是遊戲裡的一場幻夢。當現實與虛擬的界線逐漸模糊，這段情誼究竟是真心還是幻影，即將迎來揭曉的時刻。",
   "year": 2018,
   "season": "WINTER",
-  "backup": ""
+  "backup": "",
+  "series": "sword-art-online-main"
  },
  "97910": {
   "title": "DAYS 東院學園戰！",
@@ -41192,7 +41199,8 @@ const CN_OVERLAY = {
   "desc": "取材自遊戲《刀劍神域 Fatal Bullet》、故事舞台設定在Gun Gale Online篇章的特別短片，以試播版形式率先與觀眾見面。影片發布同時展開一場別出心裁的企劃——透過社群票選決定角色配音人選，讓粉絲得以親自參與、共同形塑這段虛擬世界的全新插曲。",
   "year": 2018,
   "season": "WINTER",
-  "backup": ""
+  "backup": "",
+  "series": "sword-art-online-main"
  },
  "115918": {
   "title": "驚爆危機 總集篇 第三部：Into the Blue",
@@ -57262,7 +57270,8 @@ const CN_OVERLAY = {
   "desc": "隨遊戲及BD特典附贈的番外短篇集，共九話，延續前作歡樂惡搞的四格漫畫風格。桐人、亞絲娜與夥伴們跳脫本傳的緊張戰鬥，以誇張逗趣的方式重新演繹刀劍神域世界中的種種名場面，是專為粉絲準備的爆笑閒聊特輯。",
   "year": 2014,
   "season": "FALL",
-  "backup": ""
+  "backup": "",
+  "series": "sword-art-online-main"
  },
  "20947": {
   "title": "日本動畫人展覽會",
@@ -58138,7 +58147,7 @@ const CN_OVERLAY = {
   "desc": "SAO事件落幕一年後，桐人受政府委託調查新型VRMMO「GGO」中的死槍疑案——中槍玩家竟會在現實中喪命。半信半疑的他在遊戲裡結識神槍手詩乃，兩人攜手挑戰大型競技賽「子彈狂想曲」，企圖引出神秘凶手真面目。",
   "year": 2014,
   "season": "SUMMER",
-  "series": "sword-art-online-tv",
+  "series": "sword-art-online-main",
   "backup": ""
  },
  "20661": {
@@ -59823,7 +59832,8 @@ const CN_OVERLAY = {
   "year": 2014,
   "season": "SPRING",
   "titleGuessed": true,
-  "backup": ""
+  "backup": "",
+  "series": "sword-art-online-main"
  },
  "20552": {
   "title": "遊戲王 ARC-V",
@@ -62321,7 +62331,7 @@ const CN_OVERLAY = {
   "desc": "為了完成結衣想看鯨魚的心願，桐人一行人挑戰ALO的水中任務，卻意外發現莉法竟然不會游泳。亞絲娜等人決定在現實世界為她特訓，而桐人也悄悄與某位重要的人有約。",
   "year": 2013,
   "season": "FALL",
-  "series": "sword-art-online-tv",
+  "series": "sword-art-online-main",
   "backup": ""
  },
  "18753": {
@@ -67261,7 +67271,8 @@ const CN_OVERLAY = {
   "desc": "BD、DVD特典短篇,把刀劍神域的角色們拉出生死攸關的死亡遊戲,丟進純粹搞笑的日常畫風裡。桐人與亞絲娜們照樣鬥嘴、照樣胡鬧,只是這次沒有一絲性命危險,連死亡遊戲的緊張感,都被短篇式的吐槽徹底拆解。",
   "year": 2012,
   "season": "FALL",
-  "backup": ""
+  "backup": "",
+  "series": "sword-art-online-main"
  },
  "10464": {
   "title": "學生會的一存 Lv.2",
@@ -68261,7 +68272,7 @@ const CN_OVERLAY = {
   "desc": "虛擬實境神作《刀劍神域》正式上線,上萬玩家戴上頭盔卻發現退不出遊戲——遊戲設計者只留下一句話:破到第一百層、擊倒頭目才能重獲自由,死在裡面就是真死。從此刻起,活下去本身就是最硬核的任務,桐人與夥伴們的攻略之路,每一步都賭上性命。",
   "year": 2012,
   "season": "SUMMER",
-  "series": "sword-art-online-tv",
+  "series": "sword-art-online-main",
   "youtube": "https://www.youtube.com/watch?v=BQ9qXpwu-xQ",
   "youtubeSource": "木棉花",
   "backup": ""
@@ -79394,11 +79405,11 @@ let curYear = 2026, curSeasonKey = 'SUMMER';
 const SEASON_LABELS = {WINTER:'冬季(1-3月)', SPRING:'春季(4-6月)', SUMMER:'夏季(7-9月)', FALL:'秋季(10-12月)'};
 const SEASON_ORDER = {WINTER:0, SPRING:1, SUMMER:2, FALL:3};
 let seasonCache = {}; // key `${year}-${season}` -> media array
-/* 「相關動畫」改成封面+標題卡片後需要的圖(CN_OVERLAY本身沒存圖,只有title/year/
-   season)。coverCache只存id->coverImage,用MEDIA_COVERS_QUERY一次batch查一整組,
-   不是一筆一個API(避免像搜尋那次一樣,一個大群組20~30筆會造成限流風暴)。
-   coverFailed記錄「查過但查不到/重試用盡仍失敗」的id,這個session裡不再重試,
-   不然每次detailHtml()重繪都會白白再打一次API。 */
+/* 「相關動畫」封面卡片、以及追蹤中/我的最愛/追番紀錄的格式篩選共用的補資料快取
+   (CN_OVERLAY本身沒存圖/格式,只有title/year/season)。coverCache存id->{coverImage,
+   format},用MEDIA_COVERS_QUERY一次batch查一整組,不是一筆一個API(避免像搜尋那次
+   一樣,一個大群組20~30筆會造成限流風暴)。coverFailed記錄「查過但查不到/重試用盡
+   仍失敗」的id,這個session裡不再重試,不然每次重繪都會白白再打一次API。 */
 let coverCache = {};
 let coverFailed = new Set();
 let coverFetchInFlight = {};
@@ -79410,6 +79421,17 @@ let searchResultsIncomplete = false; // 這次搜尋有季度資料抓取失敗(
 let searchState = 'idle'; // idle|loading
 let searchDebounceTimer = null;
 let formatFilter = 'ALL';
+// 追蹤中/我的最愛/追番紀錄各自獨立的格式篩選狀態(2026-09-13新增),理由見
+// formatFilterBarHtml()的註解。
+let trackFormatFilter = 'ALL';
+let favFormatFilter = 'ALL';
+let logFormatFilter = 'ALL';
+/* 追番紀錄排序狀態(2026-09-13新增)。'default'是使用者指定的複合排序規則
+   (同系列分組、整組依最新一集的年份季度排、組內再依格式桶排),其餘三種是
+   單純的欄位排序。setLogSort()點同一欄再點一次會反轉方向,換欄則套用該欄
+   合理的預設方向(標題預設A→Z,其他預設新的/多的在前)。 */
+let logSortMode = 'default'; // 'default'|'watchDate'|'count'|'title'
+let logSortDir = 'desc';
 let hideAdult = true; // 預設隱藏成人動畫,使用者要看的話自己去取消勾選
 let onlyAdult = false;
 let activeDetailId = null; // AniList media id currently viewed, or null = list
@@ -80211,18 +80233,33 @@ function browseHtml(){
         <input id="search-input" type="text" placeholder="搜尋全部已收錄的作品名稱…" value="${escapeHtml(query)}">
       </div>
     </div>
+    ${formatFilterBarHtml(formatFilter, 'setFormatFilter', adultCount)}
+    ${body}
+  `;
+}
+/* 格式篩選(全部/電視動畫/劇場版…)+成人內容篩選這排工具列,原本只有「季度瀏覽」
+   有,使用者要求追蹤中/我的最愛/追番紀錄也要加上同一排(2026-09-13),抽成共用
+   函式讓4個地方共用同一份標籤清單跟樣式,不用每頁各刻一份、改一邊漏一邊。
+   格式篩選狀態(currentFilter/setterName)各頁各自獨立,切分頁不會互相干擾;
+   成人內容篩選(onlyAdult/hideAdult)則是全站共用同一份全域狀態,比較像一次性
+   個人偏好設定,不需要每頁分開記——這點延續本來就有的做法(simpleListHtml/
+   logHtml先前就已經用同一份onlyAdult/hideAdult做篩選,只是沒有UI能在那幾頁調整)。 */
+function formatFilterBarHtml(currentFilter, setterName, adultCount){
+  return `
     <div class="filter-bar">
-      ${FORMAT_FILTERS.map(f=>`<button class="fmt-chip ${f===formatFilter?'active':''}" onclick="setFormatFilter('${f}')">${f==='ALL'?'全部格式':FORMAT_LABEL[f]}</button>`).join('')}
+      ${FORMAT_FILTERS.map(f=>`<button class="fmt-chip ${f===currentFilter?'active':''}" onclick="${setterName}('${f}')">${f==='ALL'?'全部':FORMAT_LABEL[f]}</button>`).join('')}
       <button class="fmt-chip fmt-chip-adult ${onlyAdult?'active':''}" onclick="toggleOnlyAdult()">Hanime${adultCount ? `(${adultCount})` : ''}</button>
       <label class="adult-toggle">
         <input type="checkbox" ${hideAdult?'checked':''} onchange="toggleHideAdult(this.checked)">
         隱藏成人動畫
       </label>
     </div>
-    ${body}
   `;
 }
 function setFormatFilter(f){ formatFilter = f; render(); }
+function setTrackFormatFilter(f){ trackFormatFilter = f; render(); }
+function setFavFormatFilter(f){ favFormatFilter = f; render(); }
+function setLogFormatFilter(f){ logFormatFilter = f; render(); }
 function toggleHideAdult(v){ hideAdult = v; if(v) onlyAdult = false; render(); }
 function toggleOnlyAdult(){ onlyAdult = !onlyAdult; if(onlyAdult) hideAdult = false; render(); }
 function clearSearch(){
@@ -80519,9 +80556,9 @@ function findMediaAnywhere(id){
   }
   return null;
 }
-/* 「相關動畫」封面圖優先沿用已經抓過的季度資料(findMediaAnywhere,零成本),
-   真的沒有才去查coverCache(ensureCoversLoaded補的)。兩邊都沒有就回傳null,
-   呼叫端顯示灰底佔位圖,不會是破圖。 */
+/* 封面圖優先沿用已經抓過的季度資料(findMediaAnywhere,零成本),真的沒有才去查
+   coverCache(ensureCoversLoaded補的)。兩邊都沒有就回傳null,呼叫端顯示灰底
+   佔位圖,不會是破圖。 */
 function coverUrlFor(id){
   const m = findMediaAnywhere(id);
   if(m) return m.coverImage.large || m.coverImage.extraLarge || m.coverImage.medium;
@@ -80529,10 +80566,19 @@ function coverUrlFor(id){
   if(c) return c.large || c.extraLarge || c.medium;
   return null;
 }
-/* 把一組id裡「還沒有封面資料」的挑出來,用MEDIA_COVERS_QUERY的id_in一次batch查
-   (最多50筆一批),不是逐筆各打一次API。回傳true代表這次真的有補到新資料、
-   值得重繪;回傳false代表全部早就有圖或已知查不到,呼叫端不用再重繪一次,
-   避免每次detailHtml()重繪都白白再呼叫一次造成無窮迴圈。 */
+/* 追蹤中/我的最愛/追番紀錄的格式篩選用——邏輯跟coverUrlFor完全對稱,一樣優先
+   沿用findMediaAnywhere,沒有才查coverCache裡補到的format。兩邊都沒有回傳null,
+   呼叫端視為「格式未知」,篩選時不會誤判成某個特定格式。 */
+function formatFor(id){
+  const m = findMediaAnywhere(id);
+  if(m) return m.format;
+  const c = coverCache[id];
+  return c ? c.format : null;
+}
+/* 把一組id裡「還沒有封面/格式資料」的挑出來,用MEDIA_COVERS_QUERY的id_in一次
+   batch查(最多50筆一批),不是逐筆各打一次API。回傳true代表這次真的有補到
+   新資料、值得重繪;回傳false代表全部早就有資料或已知查不到,呼叫端不用再
+   重繪一次,避免每次重繪都白白再呼叫一次造成無窮迴圈。 */
 async function ensureCoversLoaded(ids){
   const need = ids.filter(id => !findMediaAnywhere(id) && !coverCache[id] && !coverFailed.has(id));
   if(need.length === 0) return false;
@@ -80546,7 +80592,7 @@ async function ensureCoversLoaded(ids){
         const json = await fetchAniListWithRetry({query: MEDIA_COVERS_QUERY, variables:{ids:chunk}});
         const got = new Set();
         for(const media of json.data.Page.media){
-          coverCache[media.id] = media.coverImage;
+          coverCache[media.id] = { ...media.coverImage, format: media.format };
           got.add(media.id);
         }
         // AniList只會回傳查得到的id,查不到的(下架/id有誤)也要標記失敗,不然下次還會再打一次。
@@ -80959,17 +81005,87 @@ function simpleListHtml(kind){
         <br><button class="btn btn-sm" style="margin-top:10px" onclick="openLoginModal()">登入</button></div>`;
   }
   const source = kind==='track' ? myTracking : myFavorites;
-  const list = applyAdultFilter(source);
+  /* 追蹤中/我的最愛的資料本身(myTracking/myFavorites)只存id/title/coverImage/
+     isAdult,沒有format——格式篩選要用的format欄位靠formatFor()補(優先沿用
+     已快取的季度資料,沒有才透過ensureCoversLoaded批次補,理由同「相關動畫」
+     封面圖那套機制,2026-09-13使用者要求這兩頁也要加上格式篩選)。 */
+  const myFilterVar = kind==='track' ? trackFormatFilter : favFormatFilter;
+  const setterName = kind==='track' ? 'setTrackFormatFilter' : 'setFavFormatFilter';
+  ensureCoversLoaded(source.map(r=>r.id)).then(changed => { if(changed) render(); });
+  let list = source;
+  if(myFilterVar !== 'ALL') list = list.filter(r => formatFor(r.id) === myFilterVar);
+  list = applyAdultFilter(list);
+  const adultCount = source.filter(r=>r.isAdult).length;
   const emptyHint = kind==='track'
     ? '還沒有追蹤任何作品,在卡片右下角按「＋ 追蹤」試試。'
     : '還沒有加入任何喜愛的作品,在卡片左下角按 ♡ 試試。';
   return `
     <div class="page-head"><h2>${title}<span class="count">共 ${list.length} 部</span></h2></div>
-    ${list.length ? `<div class="grid">${list.map(simpleCardHtml).join('')}</div>` : `<div class="empty">${emptyHint}</div>`}
+    ${source.length ? formatFilterBarHtml(myFilterVar, setterName, adultCount) : ''}
+    ${list.length ? `<div class="grid">${list.map(simpleCardHtml).join('')}</div>` : `<div class="empty">${source.length ? '沒有符合篩選條件的作品。' : emptyHint}</div>`}
   `;
 }
 
 // ---------- 追番紀錄 表格 ----------
+function setLogSort(mode){
+  if(logSortMode === mode){
+    logSortDir = logSortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    logSortMode = mode;
+    logSortDir = mode === 'title' ? 'asc' : 'desc'; // 標題預設A→Z,次數/觀看日期預設多的/新的在前
+  }
+  render();
+}
+function resetLogSort(){ logSortMode = 'default'; logSortDir = 'desc'; render(); }
+/* 觀看日期排序用的比較值——dates是使用者陸續加的多筆紀錄(submitDate()加入時
+   就已經照日期字串排序過),取最後一筆(最新一次觀看)當代表值;完全沒記錄過
+   日期的排最後面(空字串在字串比較中最小,desc排序自然會被排到底)。 */
+function logWatchDateKey(r){ return (r.dates && r.dates.length) ? r.dates[r.dates.length-1].date : ''; }
+/* 「預設排序」——使用者2026-09-13指定的規則:同系列的作品要排在一起,整組在
+   總表裡的位置依「組內最新一集的年份季度」決定(例如某系列最新一集是今年的
+   新作,即使本傳是十幾年前的舊作,整組還是要排到最前面);組內部再依格式桶排:
+   TV(依年份季度,自然就是第一季→第二季→第三季…)→OVA/特別篇等→劇場版→
+   標題含「外傳」關鍵字的一律排最後(不管格式)。
+   分組用的key優先沿用CN_OVERLAY的series欄位,沒有才退而求其次用coreTitleKey()
+   保底比對——跟「相關動畫」用的是同一套系列判斷基準,不另外兜一套邏輯。 */
+function logGroupKeyFor(id){
+  const ov = cnOverlay(id);
+  if(!ov) return `id:${id}`;
+  if(ov.series) return `series:${ov.series}`;
+  const key = coreTitleKey(ov.title);
+  return key ? `guess:${key}` : `id:${id}`;
+}
+function logChronoKey(id){
+  const ov = cnOverlay(id);
+  if(!ov) return 0;
+  return (ov.year||0) * 10 + (SEASON_ORDER[ov.season] ?? 0);
+}
+function logFormatBucket(id){
+  const ov = cnOverlay(id);
+  if(ov && /外傳/.test(ov.title)) return 3; // 外傳不管格式一律排最後
+  const fmt = formatFor(id);
+  if(fmt === 'MOVIE') return 2;
+  if(fmt === 'TV') return 0;
+  if(fmt) return 1; // OVA/ONA/SPECIAL/TV_SHORT/MUSIC等
+  return 1; // 格式還沒補到資料時暫時當中間桶,ensureCoversLoaded補到後重繪會自動修正
+}
+function computeDefaultLogOrder(rows){
+  const groups = {};
+  for(const r of rows){
+    const key = logGroupKeyFor(r.id);
+    (groups[key] = groups[key] || []).push(r);
+  }
+  const groupList = Object.values(groups);
+  for(const g of groupList){
+    g.sort((a,b) => (logFormatBucket(a.id) - logFormatBucket(b.id)) || (logChronoKey(a.id) - logChronoKey(b.id)));
+  }
+  groupList.sort((ga,gb) => {
+    const maxA = Math.max(...ga.map(r=>logChronoKey(r.id)));
+    const maxB = Math.max(...gb.map(r=>logChronoKey(r.id)));
+    return maxB - maxA; // 系列裡最新一集愈新,整組排愈前面
+  });
+  return groupList.flat();
+}
 function logHtml(){
   const title = '追番紀錄';
   if(authState === 'loading'){
@@ -80983,20 +81099,42 @@ function logHtml(){
   if(logSyncState === 'loading'){
     return `<div class="page-head"><h2>${title}</h2></div><div class="state-box">連線同步中…</div>`;
   }
-  const rows = myLog;
+  const allRows = myLog;
   const syncNote = logSyncState==='error'
     ? `<span class="badge-sample" title="${escapeHtml(logSyncError)}">⚠ 雲端連線失敗,目前顯示本機備份,未同步</span>`
     : `<span class="badge-sample">已同步雲端</span>`;
   const addBtn = `<button class="btn btn-sm" onclick="openLogAddForm()">＋ 新增</button>`;
-  if(rows.length===0){
+  if(allRows.length===0){
     return `<div class="page-head"><h2>${title} ${syncNote}</h2>${addBtn}</div><div class="empty">目前還沒有紀錄,看完一部作品後按上面「＋ 新增」搜尋加入,或去該作品詳情頁下方「＋ 加入追番紀錄」。</div>`;
   }
+  // 格式篩選要用的format欄位,跟追蹤中/我的最愛用同一套機制補齊(2026-09-13)。
+  ensureCoversLoaded(allRows.map(r=>r.id)).then(changed => { if(changed) render(); });
+  let rows = allRows;
+  if(logFormatFilter !== 'ALL') rows = rows.filter(r => formatFor(r.id) === logFormatFilter);
+  rows = applyAdultFilter(rows);
+  const adultCount = allRows.filter(r=>r.isAdult).length;
+  const sortKeyFor = { watchDate: logWatchDateKey, count: r => r.count||0, title: r => r.title||'' }[logSortMode];
+  const displayRows = logSortMode === 'default' ? computeDefaultLogOrder(rows) : rows.slice().sort((a,b) => {
+    const ka = sortKeyFor(a), kb = sortKeyFor(b);
+    const cmp = typeof ka === 'number' ? ka - kb : String(ka).localeCompare(String(kb), 'zh-Hant');
+    return logSortDir === 'asc' ? cmp : -cmp;
+  });
+  const thSort = (mode, label) => {
+    const active = logSortMode === mode;
+    const arrow = active ? (logSortDir==='asc' ? ' ▲' : ' ▼') : '';
+    return `<th class="th-sortable ${active?'active':''}" onclick="setLogSort('${mode}')">${label}${arrow}</th>`;
+  };
   return `
-    <div class="page-head"><h2>${title} ${syncNote}<span class="count">共 ${rows.length} 部</span></h2>${addBtn}</div>
+    <div class="page-head"><h2>${title} ${syncNote}<span class="count">共 ${displayRows.length} 部</span></h2>
+      <button class="btn btn-sm btn-ghost ${logSortMode==='default'?'active':''}" onclick="resetLogSort()">↺ 預設排序</button>
+      ${addBtn}
+    </div>
+    ${formatFilterBarHtml(logFormatFilter, 'setLogFormatFilter', adultCount)}
+    ${displayRows.length === 0 ? `<div class="empty">沒有符合篩選條件的作品。</div>` : `
     <div class="table-wrap"><table>
-      <thead><tr><th>封面</th><th>作品</th><th>狀態</th><th>次數</th><th>觀看日期</th><th>備註</th><th></th></tr></thead>
+      <thead><tr><th>封面</th>${thSort('title','作品')}<th>狀態</th>${thSort('count','次數')}${thSort('watchDate','觀看日期')}<th>備註</th><th></th></tr></thead>
       <tbody>
-        ${rows.map(r=>`
+        ${displayRows.map(r=>`
           <tr>
             <td><img src="${escapeHtml(r.coverImage)}" alt="" style="width:48px;height:auto;display:block;border-radius:4px;"></td>
             <td class="title-cell">${escapeHtml(r.title)}${r.isAdult ? ` <span class="tag tag-adult">18+</span>` : ''}</td>
@@ -81021,7 +81159,7 @@ function logHtml(){
           </tr>
         `).join('')}
       </tbody>
-    </table></div>
+    </table></div>`}
   `;
 }
 
