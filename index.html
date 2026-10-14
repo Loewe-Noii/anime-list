@@ -142477,7 +142477,13 @@ function setMobileGridCols(n){
   document.body.classList.toggle('grid-cols-3', n===3);
   render();
 }
-let curYear = 2026, curSeasonKey = 'SUMMER';
+/* 「當季」依今天的日期推算(2026-10-15修正:原本寫死成2026夏季,10月進入秋季後
+   首頁「當季熱門」跟季度瀏覽預設仍停在夏季)。日本動畫季度:1~3月冬、4~6月春、
+   7~9月夏、10~12月秋。NOW_YEAR/NOW_SEASON是『真正的當季』,首頁「當季熱門」固定用它;
+   curYear/curSeasonKey是季度瀏覽目前選的季度,預設等於當季,使用者可自行切換。 */
+function seasonKeyOfDate(d){ const m = d.getMonth() + 1; return m <= 3 ? 'WINTER' : m <= 6 ? 'SPRING' : m <= 9 ? 'SUMMER' : 'FALL'; }
+const NOW_YEAR = new Date().getFullYear(), NOW_SEASON = seasonKeyOfDate(new Date());
+let curYear = NOW_YEAR, curSeasonKey = NOW_SEASON;
 const SEASON_LABELS = {WINTER:'冬季(1-3月)', SPRING:'春季(4-6月)', SUMMER:'夏季(7-9月)', FALL:'秋季(10-12月)'};
 const SEASON_ORDER = {WINTER:0, SPRING:1, SUMMER:2, FALL:3};
 let seasonCache = {}; // key `${year}-${season}` -> media array
@@ -143135,7 +143141,7 @@ async function loadPopular(mode){
   popularCache[key] = {list:null, state:'loading'}; render();
   try{
     let seasonKeys;
-    if(mode==='season') seasonKeys = [`${curYear}-${curSeasonKey}`];
+    if(mode==='season') seasonKeys = [`${NOW_YEAR}-${NOW_SEASON}`];   // 真正的當季(不受季度瀏覽目前選的季度影響)
     else if(mode==='recent') seasonKeys = recentSeasonKeys();
     else seasonKeys = yearSeasonKeys(popularYear);
     // 踩過的坑:原本每個季度抓取失敗都被.catch(()=>[])吞掉當成「這季剛好0筆」,
